@@ -15,6 +15,38 @@ export type Project = {
   featured: boolean;
 };
 
+export type SupabaseProject = {
+  id?: string;
+  title: string;
+  slug: string;
+  description: string;
+  tech_stack: string[] | null;
+  image_url: string | null;
+  demo_url: string | null;
+  repo_url: string | null;
+  featured: boolean;
+  created_at: string;
+};
+
+export function mapSupabaseProject(project: SupabaseProject): Project {
+  return {
+    slug: project.slug,
+    title: project.title,
+    category: "Digital experience",
+    year: project.created_at.slice(0, 4),
+    description: project.description,
+    longDescription: project.description,
+    stack: project.tech_stack ?? [],
+    accent: "green",
+    result: "—",
+    role: "Design & Development",
+    imageLabel: project.title.toUpperCase(),
+    demoUrl: project.demo_url ?? "#",
+    repoUrl: project.repo_url ?? "#",
+    featured: project.featured,
+  };
+}
+
 export const projects: Project[] = [
   {
     slug: "kora-finance",
