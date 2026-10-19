@@ -1,8 +1,12 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f6f7f2;
+  --foreground: #18211b;
+  --muted: #68746b;
+  --line: #dce2d9;
+  --accent: #d8ff62;
+  --dark: #18211b;
 }
 
 @theme inline {
@@ -12,15 +16,67 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--dark);
+}
+
+.display-font {
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  letter-spacing: -0.055em;
+}
+
+.eyebrow {
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.grid-overlay {
+  background-image: linear-gradient(to right, rgba(24, 33, 27, 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(24, 33, 27, 0.06) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+.project-art {
+  background:
+    radial-gradient(circle at 72% 25%, rgba(216, 255, 98, 0.95), transparent 24%),
+    linear-gradient(135deg, #24372c 0%, #546d58 50%, #b9c7a5 100%);
+}
+
+.project-art-alt {
+  background:
+    radial-gradient(circle at 20% 35%, rgba(255, 226, 154, 0.9), transparent 24%),
+    linear-gradient(135deg, #202a45 0%, #53658e 52%, #b3c3d6 100%);
+}
+
+.project-art-warm {
+  background:
+    radial-gradient(circle at 76% 70%, rgba(255, 173, 122, 0.9), transparent 24%),
+    linear-gradient(135deg, #543831 0%, #9e6550 52%, #e2c4a0 100%);
+}
+
+.link-arrow {
+  transition: transform 180ms ease;
+}
+
+a:hover .link-arrow,
+button:hover .link-arrow {
+  transform: translateX(4px);
 }
