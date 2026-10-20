@@ -1,9 +1,11 @@
 "use client";
 
 import { useActionState } from "react";
+import { useState } from "react";
 import { submitContact, type ContactActionState } from "@/app/contact/actions";
 
 export function ContactForm() {
+  const [openedAt] = useState(() => Date.now());
   const [state, formAction, pending] = useActionState<ContactActionState, FormData>(
     submitContact,
     { error: "", success: false },
@@ -21,6 +23,10 @@ export function ContactForm() {
 
   return (
     <form action={formAction} className="space-y-6">
+      <input type="hidden" name="opened_at" value={openedAt} />
+      <div aria-hidden="true" className="absolute -left-[9999px] h-px w-px overflow-hidden">
+        <label>Website<input name="website" tabIndex={-1} autoComplete="off" /></label>
+      </div>
       <div className="grid gap-6 sm:grid-cols-2">
         <label className="block text-sm font-semibold">Name<input required name="name" placeholder="Your name" className="mt-2 w-full border-b border-[var(--line)] bg-transparent py-3 outline-none placeholder:text-[#9ba59d] focus:border-[var(--dark)]" /></label>
         <label className="block text-sm font-semibold">Email<input required type="email" name="email" placeholder="you@email.com" className="mt-2 w-full border-b border-[var(--line)] bg-transparent py-3 outline-none placeholder:text-[#9ba59d] focus:border-[var(--dark)]" /></label>
