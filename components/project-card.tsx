@@ -1,20 +1,11 @@
 import Link from "next/link";
 import Image from "next/image";
 import type { Project } from "@/lib/dummy-data";
+import { getProjectCover, getProjectPlaceholderClass } from "@/lib/project-cover";
 
 export function ProjectCard({ project, featured = false }: { project: Project; featured?: boolean }) {
-  const imageUrl = project.imageUrl || project.galleryImages?.[0];
-  const placeholderClass = project.domain === "Oil & Gas"
-    ? "bg-gradient-to-br from-[#13291d] via-[#31553c] to-[#637d61]"
-    : project.domain === "Geothermal"
-      ? "bg-gradient-to-br from-[#7c2d12] via-[#c65f2b] to-[#f2b27d]"
-      : project.domain === "Mining"
-        ? "bg-gradient-to-br from-[#3d261b] via-[#765039] to-[#b18a65]"
-        : project.domain === "Hydrogeology"
-          ? "bg-gradient-to-br from-[#123b5d] via-[#28739a] to-[#8cc8d8]"
-          : project.domain === "Engineering Geophysics"
-            ? "bg-gradient-to-br from-[#35205c] via-[#66439a] to-[#b296d2]"
-            : "bg-gradient-to-br from-[#374151] via-[#6b7280] to-[#d1d5db]";
+  const imageUrl = getProjectCover(project);
+  const placeholderClass = getProjectPlaceholderClass(project.domain);
 
   return (
     <Link href={`/projects/${project.slug}`} className={featured ? "group block" : "group block"}>

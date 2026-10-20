@@ -2,7 +2,6 @@ import { ProjectFilters } from "@/components/project-filters";
 import { mapSupabaseProject, type SupabaseProject } from "@/lib/dummy-data";
 import { createClient } from "@/lib/supabase/server";
 import { getSiteSettings } from "@/lib/site-settings";
-import { getProjectImageMap } from "@/lib/project-images";
 
 export const metadata = { title: "Projects" };
 export const instant = false;
@@ -12,19 +11,14 @@ export default async function ProjectsPage() {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("projects")
-    .select("id,title,slug,description,tech_stack,image_url,demo_url,repo_url,doc_url,doc_name,featured,created_at,role,duration,study_area,domain,data_type,methods,software,objective,workflow,result,conclusion")
+    .select("id,title,slug,description,tech_stack,image_url,demo_url,repo_url,doc_url,doc_name,featured,created_at,role,duration,study_area,domain,data_type,methods,software,objective,workflow,result,conclusion,project_images(id,image_url,sort_order)")
     .order("created_at", { ascending: false });
 
   if (error) {
     throw new Error(`Gagal memuat project: ${error.message}`);
   }
 
-  const rows = (data ?? []) as (SupabaseProject & { id: string })[];
-  const imageMap = await getProjectImageMap(rows.map((project) => project.id));
-  const projects = rows.map((project) => ({
-    ...mapSupabaseProject(project),
-    galleryImages: imageMap.get(project.id) ?? [],
-  }));
+  const projects = (data as SupabaseProject[]).map(mapSupabaseProject);
 
   return (
     <div className="mx-auto max-w-6xl px-5 py-20 sm:px-8 sm:py-28">

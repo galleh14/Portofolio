@@ -445,6 +445,22 @@ export async function updateProjectImage(formData: FormData) {
   revalidatePath(`/projects/${String(formData.get("slug") ?? "")}`, "page");
 }
 
+export async function setProjectCover(formData: FormData) {
+  const id = String(formData.get("id") ?? "");
+  const imageId = String(formData.get("image_id") ?? "");
+  if (!id || !imageId) throw new Error("Data cover project tidak lengkap.");
+  const supabase = await requireUser();
+  const { data: image, error: imageError } = await supabase.from("project_images").select("image_url").eq("id", imageId).eq("project_id", id).single();
+  if (imageError || !image) throw new Error(`Gambar cover gagal dimuat: ${imageError?.message ?? "gambar tidak ditemukan"}`);
+  const { error } = await supabase.from("projects").update({ image_url: image.image_url }).eq("id", id);
+  if (error) throw new Error(`Cover project gagal disimpan: ${error.message}`);
+  const slug = String(formData.get("slug") ?? "");
+  revalidatePath("/admin/dashboard", "page");
+  revalidatePath("/", "page");
+  revalidatePath("/projects", "page");
+  revalidatePath(`/projects/${slug}`, "page");
+}
+
 export async function deleteProjectImage(formData: FormData) {
   const id = String(formData.get("id") ?? "");
   const imageId = String(formData.get("image_id") ?? "");
