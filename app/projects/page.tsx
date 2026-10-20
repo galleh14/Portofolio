@@ -11,7 +11,7 @@ export default async function ProjectsPage() {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("projects")
-    .select("title,slug,description,tech_stack,image_url,demo_url,repo_url,featured,created_at")
+    .select("title,slug,description,tech_stack,image_url,demo_url,repo_url,doc_url,doc_name,featured,created_at")
     .order("created_at", { ascending: false });
 
   if (error) {

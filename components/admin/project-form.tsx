@@ -14,6 +14,7 @@ export function ProjectForm({ project }: { project?: AdminProject }) {
   const [state, formAction, pending] = useActionState(action, initialState);
   const [preview, setPreview] = useState<string | null>(project?.image_url ?? null);
   const [fileError, setFileError] = useState("");
+  const [documentError, setDocumentError] = useState("");
 
   useEffect(() => {
     return () => {
@@ -43,10 +44,27 @@ export function ProjectForm({ project }: { project?: AdminProject }) {
     setPreview(URL.createObjectURL(file));
   }
 
+  function handleDocumentChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    setDocumentError("");
+    if (!file) return;
+    if (file.type !== "application/pdf") {
+      event.target.value = "";
+      setDocumentError("Dokumen harus berformat PDF.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      event.target.value = "";
+      setDocumentError("Ukuran dokumen maksimal 5MB.");
+    }
+  }
+
   return (
     <form action={formAction} encType="multipart/form-data" className="space-y-6 rounded-2xl bg-white p-6 sm:p-8">
       {project && <input type="hidden" name="id" value={project.id} />}
       <input type="hidden" name="existing_image_url" value={project?.image_url ?? ""} />
+      <input type="hidden" name="existing_doc_url" value={project?.docUrl ?? ""} />
+      <input type="hidden" name="existing_doc_name" value={project?.docName ?? ""} />
       <div className="grid gap-5 sm:grid-cols-2">
         <label className="block text-sm font-semibold">Title<input required name="title" defaultValue={project?.title} className="mt-2 block w-full rounded-lg border border-[var(--line)] bg-transparent px-3 py-3 font-normal outline-none transition focus:border-[var(--dark)]" /></label>
         <label className="block text-sm font-semibold">Slug<input required name="slug" defaultValue={project?.slug} className="mt-2 block w-full rounded-lg border border-[var(--line)] bg-transparent px-3 py-3 font-normal outline-none transition focus:border-[var(--dark)]" /></label>
@@ -62,6 +80,12 @@ export function ProjectForm({ project }: { project?: AdminProject }) {
         </div>
         <label className="block text-sm font-semibold">Demo URL<input name="demo_url" defaultValue={project?.demoUrl} className="mt-2 block w-full rounded-lg border border-[var(--line)] bg-transparent px-3 py-3 font-normal outline-none transition focus:border-[var(--dark)]" /></label>
         <label className="block text-sm font-semibold">Repo URL<input name="repo_url" defaultValue={project?.repoUrl} className="mt-2 block w-full rounded-lg border border-[var(--line)] bg-transparent px-3 py-3 font-normal outline-none transition focus:border-[var(--dark)]" /></label>
+      </div>
+      <div className="space-y-3 border-t border-[var(--line)] pt-6">
+        <label className="block text-sm font-semibold">Project document (PDF)<input name="document" type="file" accept="application/pdf" onChange={handleDocumentChange} className="mt-2 block w-full cursor-pointer rounded-lg border border-[var(--line)] bg-transparent px-3 py-3 text-sm font-normal file:mr-4 file:rounded-full file:border-0 file:bg-[var(--dark)] file:px-4 file:py-2 file:text-xs file:font-semibold file:text-white" /></label>
+        <p className="text-xs text-[var(--muted)]">PDF, maksimal 5MB. Upload file baru akan mengganti dokumen lama.</p>
+        {documentError && <p role="alert" className="text-sm text-red-700">{documentError}</p>}
+        {project?.docUrl && <div className="flex flex-wrap items-center gap-4 rounded-lg border border-[var(--line)] p-3 text-sm"><a href={project.docUrl} target="_blank" rel="noopener noreferrer" className="font-semibold hover:underline">{project.docName ?? "Lihat dokumen lama"} ↗</a><label className="flex items-center gap-2 text-red-700"><input type="checkbox" name="remove_document" className="h-4 w-4" /> Hapus dokumen lama</label></div>}
       </div>
       <label className="flex items-center gap-2 text-sm font-semibold"><input type="checkbox" name="featured" defaultChecked={project?.featured} className="h-4 w-4 accent-[#18211b]" /> Featured project</label>
       {state.error && <p role="alert" className="text-sm text-red-700">{state.error}</p>}
