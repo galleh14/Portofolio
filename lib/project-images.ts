@@ -7,3 +7,24 @@ export async function getProjectImages(projectId: string) {
   if (error) throw new Error(`Gagal memuat galeri project: ${error.message}`);
   return (data ?? []) as ProjectImage[];
 }
+
+export async function getProjectImageMap(projectIds: string[]) {
+  if (projectIds.length === 0) return new Map<string, string[]>();
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("project_images")
+    .select("project_id,image_url,sort_order")
+    .in("project_id", projectIds)
+    .order("sort_order", { ascending: true });
+
+  if (error) throw new Error(`Gagal memuat gambar project: ${error.message}`);
+
+  const imageMap = new Map<string, string[]>();
+  for (const image of data ?? []) {
+    const images = imageMap.get(image.project_id) ?? [];
+    images.push(image.image_url);
+    imageMap.set(image.project_id, images);
+  }
+  return imageMap;
+}
