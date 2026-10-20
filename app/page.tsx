@@ -6,12 +6,15 @@ import { mapSupabaseProject, type SupabaseProject } from "@/lib/dummy-data";
 import { createClient } from "@/lib/supabase/server";
 import { getSiteSettings } from "@/lib/site-settings";
 import { SocialLinks } from "@/components/social-links";
+import { HeroSlider } from "@/components/hero-slider";
+import { getActiveSlides } from "@/lib/slides";
 
 export const instant = false;
 
 export default async function Home() {
   const settings = await getSiteSettings();
   await connection();
+  const slides = await getActiveSlides();
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("projects")
@@ -38,6 +41,8 @@ export default async function Home() {
           </div>
         </div>
       </section>
+
+      {slides.length > 0 && <HeroSlider slides={slides} />}
 
       <section id="about" className="mx-auto grid max-w-6xl gap-10 px-5 py-20 sm:px-8 sm:py-28 lg:grid-cols-[0.8fr_1.2fr]">
         <p className="eyebrow">{settings.about_label}</p>
