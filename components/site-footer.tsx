@@ -11,9 +11,10 @@ export function SiteFooter({ settings }: { settings: SiteSettings }) {
             <p className="eyebrow text-white/50">Have a good idea?</p>
             <h2 className="display-font mt-3 max-w-lg text-4xl font-bold leading-[0.95] sm:text-6xl">Let&apos;s make it real.</h2>
           </div>
-          <Link href="/contact" className="w-fit rounded-full bg-[var(--accent)] px-5 py-3 text-sm font-bold text-[var(--dark)] transition hover:bg-white">
-            Start a conversation <span className="ml-1">↗</span>
-          </Link>
+          <div className="flex flex-wrap gap-3">
+            <Link href="/contact" className="w-fit rounded-full bg-[var(--accent)] px-5 py-3 text-sm font-bold text-[var(--dark)] transition hover:bg-white">Start a conversation <span className="ml-1">↗</span></Link>
+            <Link href="/resume" className="w-fit rounded-full border border-white/30 px-5 py-3 text-sm font-bold text-white transition hover:bg-white hover:text-[var(--dark)]">Resume <span className="ml-1">↗</span></Link>
+          </div>
         </div>
         <div className="flex flex-col justify-between gap-6 pt-7 text-sm text-white/55 sm:flex-row">
           <p>{settings.footer_text}</p>
