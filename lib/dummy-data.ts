@@ -7,14 +7,23 @@ export type Project = {
   longDescription: string;
   stack: string[];
   accent: "green" | "blue" | "warm";
-  result: string;
-  role: string;
+  result: string | null;
+  role: string | null;
   imageLabel: string;
   demoUrl: string;
   repoUrl: string;
   docUrl: string | null;
   docName: string | null;
   featured: boolean;
+  duration: string | null;
+  studyArea: string | null;
+  domain: string | null;
+  dataType: string | null;
+  methods: string[];
+  software: string[];
+  objective: string | null;
+  workflow: string | null;
+  conclusion: string | null;
 };
 
 export type SupabaseProject = {
@@ -29,6 +38,17 @@ export type SupabaseProject = {
   doc_url: string | null;
   doc_name: string | null;
   featured: boolean;
+  role: string | null;
+  duration: string | null;
+  study_area: string | null;
+  domain: string | null;
+  data_type: string | null;
+  methods: string[] | null;
+  software: string[] | null;
+  objective: string | null;
+  workflow: string | null;
+  result: string | null;
+  conclusion: string | null;
   created_at: string;
 };
 
@@ -36,20 +56,29 @@ export function mapSupabaseProject(project: SupabaseProject): Project {
   return {
     slug: project.slug,
     title: project.title,
-    category: "Digital experience",
+    category: project.domain ?? "Other",
     year: project.created_at.slice(0, 4),
     description: project.description,
     longDescription: project.description,
     stack: project.tech_stack ?? [],
     accent: "green",
-    result: "—",
-    role: "Design & Development",
+    result: project.result,
     imageLabel: project.title.toUpperCase(),
     demoUrl: project.demo_url ?? "#",
     repoUrl: project.repo_url ?? "#",
     docUrl: project.doc_url,
     docName: project.doc_name,
     featured: project.featured,
+    role: project.role,
+    duration: project.duration,
+    studyArea: project.study_area,
+    domain: project.domain,
+    dataType: project.data_type,
+    methods: project.methods ?? [],
+    software: project.software ?? [],
+    objective: project.objective,
+    workflow: project.workflow,
+    conclusion: project.conclusion,
   };
 }
 
@@ -72,6 +101,15 @@ export const projects: Project[] = [
     docUrl: null,
     docName: null,
     featured: true,
+    duration: null,
+    studyArea: null,
+    domain: null,
+    dataType: null,
+    methods: [],
+    software: [],
+    objective: null,
+    workflow: null,
+    conclusion: null,
   },
   {
     slug: "ruang-kota",
@@ -91,6 +129,15 @@ export const projects: Project[] = [
     docUrl: null,
     docName: null,
     featured: true,
+    duration: null,
+    studyArea: null,
+    domain: null,
+    dataType: null,
+    methods: [],
+    software: [],
+    objective: null,
+    workflow: null,
+    conclusion: null,
   },
   {
     slug: "sora-studio",
@@ -110,6 +157,15 @@ export const projects: Project[] = [
     docUrl: null,
     docName: null,
     featured: true,
+    duration: null,
+    studyArea: null,
+    domain: null,
+    dataType: null,
+    methods: [],
+    software: [],
+    objective: null,
+    workflow: null,
+    conclusion: null,
   },
 ];
 
