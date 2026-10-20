@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import type { SiteSettings } from "@/lib/site-settings";
+import { AvailabilityBadge } from "@/components/availability-badge";
 
 const links = [
   { label: "Home", href: "/" },
@@ -21,6 +22,7 @@ export function SiteHeader({ settings }: { settings: SiteSettings }) {
         <Link href="/" className="display-font text-xl font-bold tracking-tight" onClick={() => setOpen(false)}>
           {settings.site_name}<span className="text-[#829e52]">.</span>
         </Link>
+        <div className="hidden lg:block"><AvailabilityBadge settings={settings} /></div>
         <nav className="hidden items-center gap-8 md:flex" aria-label="Navigasi utama">
           {links.map((link) => (
             <Link key={link.href} href={link.href} className="text-sm text-[var(--muted)] transition hover:text-[var(--foreground)]">

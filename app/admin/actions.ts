@@ -29,6 +29,8 @@ type ProjectPayload = {
   workflow: string | null;
   result: string | null;
   conclusion: string | null;
+  notebook_url: string | null;
+  dataset_url: string | null;
 };
 type ProjectReadResult = { error: string } | { value: ProjectPayload };
 const MAX_IMAGE_SIZE = 2 * 1024 * 1024;
@@ -79,6 +81,12 @@ function readProject(formData: FormData): ProjectReadResult {
   if (domain && !PROJECT_DOMAINS.includes(domain as (typeof PROJECT_DOMAINS)[number])) return { error: "Domain project tidak valid." };
   if (dataType && !DATA_TYPES.includes(dataType as (typeof DATA_TYPES)[number])) return { error: "Data type project tidak valid." };
 
+  const notebookUrl = String(formData.get("notebook_url") ?? "").trim();
+  const datasetUrl = String(formData.get("dataset_url") ?? "").trim();
+  if ((notebookUrl && !notebookUrl.startsWith("https://")) || (datasetUrl && !datasetUrl.startsWith("https://"))) {
+    return { error: "URL Notebook dan Dataset harus diawali https://." };
+  }
+
   return {
     value: {
       title,
@@ -102,6 +110,8 @@ function readProject(formData: FormData): ProjectReadResult {
       workflow: String(formData.get("workflow") ?? "").trim() || null,
       result: String(formData.get("result") ?? "").trim() || null,
       conclusion: String(formData.get("conclusion") ?? "").trim() || null,
+      notebook_url: notebookUrl || null,
+      dataset_url: datasetUrl || null,
     },
   };
 }

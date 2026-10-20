@@ -23,6 +23,9 @@ type SettingsPayload = {
   whatsapp: string;
   cv_url: string;
   footer_text: string;
+  availability_status: "open" | "busy" | "closed";
+  available_from: string;
+  location_preference: string;
 };
 type SettingsReadResult = { error: string } | { value: SettingsPayload };
 
@@ -42,7 +45,11 @@ function isValidUrl(value: string) {
 }
 
 function readSettings(formData: FormData): SettingsReadResult {
-  const settings = {
+  const availabilityStatus = readText(formData, "availability_status");
+  if (!["open", "busy", "closed"].includes(availabilityStatus)) {
+    return { error: "Status ketersediaan tidak valid." };
+  }
+  const settings: SettingsPayload = {
     site_name: readText(formData, "site_name"),
     role_title: readText(formData, "role_title"),
     location: readText(formData, "location"),
@@ -58,9 +65,12 @@ function readSettings(formData: FormData): SettingsReadResult {
     whatsapp: readText(formData, "whatsapp"),
     cv_url: readText(formData, "cv_url"),
     footer_text: readText(formData, "footer_text"),
+    availability_status: availabilityStatus as SettingsPayload["availability_status"],
+    available_from: readText(formData, "available_from"),
+    location_preference: readText(formData, "location_preference"),
   };
 
-  if (Object.entries(settings).some(([key, value]) => !["linkedin_url", "instagram_url", "github_url", "whatsapp", "cv_url"].includes(key) && !value)) {
+  if (Object.entries(settings).some(([key, value]) => !["linkedin_url", "instagram_url", "github_url", "whatsapp", "cv_url", "available_from", "location_preference"].includes(key) && !value)) {
     return { error: "Semua field selain link opsional wajib diisi." };
   }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(settings.email)) {
