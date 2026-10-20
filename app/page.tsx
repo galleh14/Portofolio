@@ -10,6 +10,7 @@ import { HeroSlider } from "@/components/hero-slider";
 import { getActiveSlides } from "@/lib/slides";
 import { createPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
+import { AvailabilityBadge } from "@/components/availability-badge";
 import { getVisibleTestimonials } from "@/lib/testimonials";
 import { TestimonialsSection } from "@/components/testimonials-section";
 
@@ -28,7 +29,7 @@ export default async function Home() {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("projects")
-    .select("id,title,slug,description,tech_stack,image_url,demo_url,repo_url,doc_url,doc_name,featured,created_at,role,duration,study_area,domain,data_type,methods,software,objective,workflow,result,conclusion,project_images(id,image_url,sort_order)")
+    .select("id,title,slug,description,tech_stack,image_url,demo_url,repo_url,doc_url,doc_name,featured,created_at,role,duration,study_area,domain,data_type,methods,software,objective,workflow,result,conclusion,notebook_url,dataset_url,project_images(id,image_url,sort_order)")
     .order("featured", { ascending: false })
     .order("created_at", { ascending: false })
     .limit(3);
@@ -45,6 +46,7 @@ export default async function Home() {
       <section className="grid-overlay border-b border-[var(--line)] px-5 pb-20 pt-20 sm:px-8 sm:pb-28 sm:pt-28">
         <div className="mx-auto max-w-6xl">
           <p className="eyebrow">{settings.role_title} · {settings.location}</p>
+          <div className="mt-5"><AvailabilityBadge settings={settings} /></div>
           <h1 className="display-font mt-6 max-w-5xl whitespace-pre-line text-6xl font-bold leading-[0.88] sm:text-8xl lg:text-[9.5rem]">{settings.hero_heading}</h1>
           <div className="mt-10 flex flex-col justify-between gap-8 sm:flex-row sm:items-end">
             <p className="max-w-sm text-base leading-7 text-[var(--muted)]">{settings.hero_subheading}</p>
