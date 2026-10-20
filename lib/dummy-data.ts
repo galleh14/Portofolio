@@ -12,6 +12,8 @@ export type Project = {
   imageLabel: string;
   demoUrl: string;
   repoUrl: string;
+  docUrl: string | null;
+  docName: string | null;
   featured: boolean;
 };
 
@@ -24,6 +26,8 @@ export type SupabaseProject = {
   image_url: string | null;
   demo_url: string | null;
   repo_url: string | null;
+  doc_url: string | null;
+  doc_name: string | null;
   featured: boolean;
   created_at: string;
 };
@@ -43,6 +47,8 @@ export function mapSupabaseProject(project: SupabaseProject): Project {
     imageLabel: project.title.toUpperCase(),
     demoUrl: project.demo_url ?? "#",
     repoUrl: project.repo_url ?? "#",
+    docUrl: project.doc_url,
+    docName: project.doc_name,
     featured: project.featured,
   };
 }
@@ -63,6 +69,8 @@ export const projects: Project[] = [
     imageLabel: "KORA / 01",
     demoUrl: "#",
     repoUrl: "#",
+    docUrl: null,
+    docName: null,
     featured: true,
   },
   {
@@ -80,6 +88,8 @@ export const projects: Project[] = [
     imageLabel: "RUANG / 02",
     demoUrl: "#",
     repoUrl: "#",
+    docUrl: null,
+    docName: null,
     featured: true,
   },
   {
@@ -97,6 +107,8 @@ export const projects: Project[] = [
     imageLabel: "SORA / 03",
     demoUrl: "#",
     repoUrl: "#",
+    docUrl: null,
+    docName: null,
     featured: true,
   },
 ];
