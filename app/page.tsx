@@ -8,6 +8,8 @@ import { getSiteSettings } from "@/lib/site-settings";
 import { SocialLinks } from "@/components/social-links";
 import { HeroSlider } from "@/components/hero-slider";
 import { getActiveSlides } from "@/lib/slides";
+import { getVisibleTestimonials } from "@/lib/testimonials";
+import { TestimonialsSection } from "@/components/testimonials-section";
 
 export const instant = false;
 
@@ -15,6 +17,7 @@ export default async function Home() {
   const settings = await getSiteSettings();
   await connection();
   const slides = await getActiveSlides();
+  const testimonials = await getVisibleTestimonials();
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("projects")
@@ -63,6 +66,8 @@ export default async function Home() {
           <Link href="/projects" className="mt-10 block text-sm font-bold sm:hidden">View all projects <span className="ml-1">↗</span></Link>
         </div>
       </section>}
+
+      <TestimonialsSection testimonials={testimonials} />
 
       <section id="contact" className="mx-auto grid max-w-6xl gap-12 px-5 py-20 sm:px-8 sm:py-28 lg:grid-cols-[0.8fr_1.2fr]">
         <div><p className="eyebrow">Get in touch</p><h2 className="display-font mt-4 text-5xl font-bold leading-none sm:text-7xl">{settings.role_title}</h2><div className="mt-10 space-y-3 text-sm text-[var(--muted)]"><p><a href={`mailto:${settings.email}`} target="_blank" rel="noopener noreferrer">{settings.email}</a></p><p>{settings.location}</p></div><div className="mt-7"><SocialLinks settings={settings} /></div></div>
