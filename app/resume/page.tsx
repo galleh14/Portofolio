@@ -1,7 +1,15 @@
 import { getResumeItems, groupResumeItems, RESUME_CATEGORY_LABELS, formatResumePeriod, type ResumeItem } from "@/lib/resume";
+import { getSiteSettings } from "@/lib/site-settings";
+import { createPageMetadata } from "@/lib/seo";
+import type { Metadata } from "next";
 
-export const metadata = { title: "Resume" };
 export const instant = false;
+
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getSiteSettings();
+  const items = await getResumeItems();
+  return createPageMetadata(settings, "Resume", `${settings.site_name} — ${items.length} pengalaman, pendidikan, dan pencapaian.`);
+}
 
 function TimelineSection({ title, items }: { title: string; items: ResumeItem[] }) {
   return <section><p className="eyebrow">{title}</p><div className="mt-6 space-y-8 border-l border-[var(--line)] pl-6">{items.map((item) => <article key={item.id} className="relative"><span className="absolute -left-[31px] top-1 h-2.5 w-2.5 rounded-full bg-[var(--accent)]" /><div className="flex flex-col justify-between gap-2 sm:flex-row"><div><h3 className="display-font text-2xl font-bold">{item.title}</h3><p className="mt-1 text-sm text-[var(--muted)]">{item.organization}{item.organization && item.location ? " · " : ""}{item.location}</p></div><p className="text-sm text-[var(--muted)]">{formatResumePeriod(item)}</p></div>{item.description && <p className="mt-3 max-w-2xl whitespace-pre-line leading-7 text-[var(--muted)]">{item.description}</p>}</article>)}</div></section>;

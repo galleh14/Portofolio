@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { getSiteSettings } from "@/lib/site-settings";
+import { getSiteUrl } from "@/lib/seo";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -20,8 +21,15 @@ export const instant = false;
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSiteSettings();
   return {
-    title: { default: `${settings.site_name} — ${settings.role_title}`, template: `%s — ${settings.site_name}` },
+    metadataBase: new URL(getSiteUrl()),
+    title: { default: `${settings.site_name} | ${settings.role_title}`, template: `%s | ${settings.site_name}` },
     description: `${settings.site_name}, ${settings.role_title} based in ${settings.location}.`,
+    openGraph: {
+      siteName: settings.site_name,
+      type: "website",
+      images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: settings.site_name }],
+    },
+    twitter: { card: "summary_large_image", images: ["/opengraph-image"] },
   };
 }
 

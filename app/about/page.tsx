@@ -1,9 +1,15 @@
 import Link from "next/link";
 import { getSiteSettings } from "@/lib/site-settings";
 import { getResumeItems } from "@/lib/resume";
+import { createPageMetadata } from "@/lib/seo";
+import type { Metadata } from "next";
 
-export const metadata = { title: "About" };
 export const instant = false;
+
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getSiteSettings();
+  return createPageMetadata(settings, "About", settings.about_body);
+}
 
 export default async function AboutPage() {
   const settings = await getSiteSettings();
