@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { deleteProject } from "@/app/admin/actions";
 import { LogoutButton } from "@/components/admin/logout-button";
+import { getUnreadMessageCount } from "@/lib/messages";
 
 export const metadata = { title: "Admin Dashboard" };
 
@@ -18,12 +19,13 @@ export default async function AdminDashboardPage() {
   const { data, error } = await supabase.from("projects").select("id,title,slug,description,featured").order("created_at", { ascending: false });
   if (error) throw new Error(`Gagal memuat project: ${error.message}`);
   const projects = (data ?? []) as ProjectRow[];
+  const unreadCount = await getUnreadMessageCount();
 
   return (
     <div className="mx-auto max-w-6xl px-5 py-16 sm:px-8 sm:py-24">
       <div className="flex flex-col justify-between gap-5 border-b border-[var(--line)] pb-8 sm:flex-row sm:items-end">
         <div><p className="eyebrow">Admin workspace</p><h1 className="display-font mt-3 text-5xl font-bold">Projects.</h1></div>
-        <div className="flex items-center gap-5"><Link href="/admin/slides" className="text-sm font-semibold hover:underline">Slides</Link><Link href="/admin/resume" className="text-sm font-semibold hover:underline">Resume</Link><Link href="/admin/testimonials" className="text-sm font-semibold hover:underline">Testimonials</Link><Link href="/admin/settings" className="text-sm font-semibold hover:underline">Pengaturan</Link><LogoutButton /><Link href="/admin/dashboard/new" className="rounded-full bg-[var(--dark)] px-5 py-3 text-sm font-semibold text-white">Add project <span className="ml-1">+</span></Link></div>
+        <div className="flex items-center gap-5"><Link href="/admin/messages" className="text-sm font-semibold hover:underline">Pesan{unreadCount > 0 && <span className="ml-1 rounded-full bg-[#d8ff62] px-1.5 py-0.5 text-[10px] text-[var(--dark)]">{unreadCount}</span>}</Link><Link href="/admin/slides" className="text-sm font-semibold hover:underline">Slides</Link><Link href="/admin/resume" className="text-sm font-semibold hover:underline">Resume</Link><Link href="/admin/testimonials" className="text-sm font-semibold hover:underline">Testimonials</Link><Link href="/admin/settings" className="text-sm font-semibold hover:underline">Pengaturan</Link><LogoutButton /><Link href="/admin/dashboard/new" className="rounded-full bg-[var(--dark)] px-5 py-3 text-sm font-semibold text-white">Add project <span className="ml-1">+</span></Link></div>
       </div>
       <div className="mt-8 overflow-hidden rounded-2xl bg-white">
         {projects.length === 0 ? <p className="p-8 text-sm text-[var(--muted)]">Belum ada project. Tambahkan project pertama.</p> : projects.map((project) => (
