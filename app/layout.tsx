@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
+import { getSiteSettings } from "@/lib/site-settings";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -14,21 +15,24 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: {
-    default: "Raka Aditya — Product Designer & Developer",
-    template: "%s — Raka Aditya",
-  },
-  description: "Portfolio Raka Aditya, product designer and developer based in Jakarta.",
-};
+export const instant = false;
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getSiteSettings();
+  return {
+    title: { default: `${settings.site_name} — ${settings.role_title}`, template: `%s — ${settings.site_name}` },
+    description: `${settings.site_name}, ${settings.role_title} based in ${settings.location}.`,
+  };
+}
+
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const settings = await getSiteSettings();
   return (
     <html lang="id" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body className="min-h-screen">
-        <SiteHeader />
+        <SiteHeader settings={settings} />
         <main>{children}</main>
-        <SiteFooter />
+        <SiteFooter settings={settings} />
       </body>
     </html>
   );

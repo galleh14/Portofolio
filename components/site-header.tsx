@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import type { SiteSettings } from "@/lib/site-settings";
 
 const links = [
   { label: "Home", href: "/" },
@@ -10,14 +11,14 @@ const links = [
   { label: "Contact", href: "/contact" },
 ];
 
-export function SiteHeader() {
+export function SiteHeader({ settings }: { settings: SiteSettings }) {
   const [open, setOpen] = useState(false);
 
   return (
     <header className="relative z-20 border-b border-[var(--line)] bg-[var(--background)]">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-5 sm:px-8">
         <Link href="/" className="display-font text-xl font-bold tracking-tight" onClick={() => setOpen(false)}>
-          raka<span className="text-[#829e52]">.</span>
+          {settings.site_name}<span className="text-[#829e52]">.</span>
         </Link>
         <nav className="hidden items-center gap-8 md:flex" aria-label="Navigasi utama">
           {links.map((link) => (
@@ -27,7 +28,7 @@ export function SiteHeader() {
           ))}
         </nav>
         <Link href="/contact" className="hidden rounded-full bg-[var(--dark)] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#35443a] sm:block">
-          Let&apos;s talk <span className="ml-1">↗</span>
+          Contact <span className="ml-1">↗</span>
         </Link>
         <button
           type="button"
