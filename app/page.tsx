@@ -37,7 +37,10 @@ export default async function Home() {
           <h1 className="display-font mt-6 max-w-5xl whitespace-pre-line text-6xl font-bold leading-[0.88] sm:text-8xl lg:text-[9.5rem]">{settings.hero_heading}</h1>
           <div className="mt-10 flex flex-col justify-between gap-8 sm:flex-row sm:items-end">
             <p className="max-w-sm text-base leading-7 text-[var(--muted)]">{settings.hero_subheading}</p>
-            <Link href="/projects" className="group flex w-fit items-center gap-3 text-sm font-bold">Explore my work <span className="link-arrow text-xl">↓</span></Link>
+            <div className="flex flex-wrap items-center gap-5">
+              <Link href="/projects" className="group flex w-fit items-center gap-3 text-sm font-bold">Explore my work <span className="link-arrow text-xl">↓</span></Link>
+              {settings.cv_url && <a href={settings.cv_url} target="_blank" rel="noopener noreferrer" download className="rounded-full bg-[var(--dark)] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#35443a]">Download CV ↗</a>}
+            </div>
           </div>
         </div>
       </section>

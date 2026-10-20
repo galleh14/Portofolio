@@ -1,8 +1,8 @@
 import type { SiteSettings } from "@/lib/site-settings";
 
-function ExternalLink({ href, label, children }: { href: string; label: string; children: React.ReactNode }) {
+function ExternalLink({ href, label, download, children }: { href: string; label: string; download?: boolean; children: React.ReactNode }) {
   return (
-    <a href={href} target="_blank" rel="noopener noreferrer" aria-label={label} className="transition hover:text-[#829e52]">
+    <a href={href} target="_blank" rel="noopener noreferrer" download={download} aria-label={label} className="transition hover:text-[#829e52]">
       {children}
     </a>
   );
@@ -30,7 +30,7 @@ export function SocialLinks({ settings }: { settings: SiteSettings }) {
       {settings.github_url && <ExternalLink href={settings.github_url} label="GitHub"><Icon name="github" /></ExternalLink>}
       {settings.email && <ExternalLink href={`mailto:${settings.email}`} label={`Email ${settings.email}`}><Icon name="mail" /></ExternalLink>}
       {whatsapp && <ExternalLink href={`https://wa.me/${whatsapp}`} label="WhatsApp"><Icon name="whatsapp" /></ExternalLink>}
-      {settings.cv_url && <ExternalLink href={settings.cv_url} label="Download CV"><Icon name="cv" /></ExternalLink>}
+      {settings.cv_url && <ExternalLink href={settings.cv_url} label="Download CV" download><Icon name="cv" /></ExternalLink>}
     </div>
   );
 }

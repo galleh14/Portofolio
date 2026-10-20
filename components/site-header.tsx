@@ -27,6 +27,7 @@ export function SiteHeader({ settings }: { settings: SiteSettings }) {
               {link.label}
             </Link>
           ))}
+          {settings.cv_url && <a href={settings.cv_url} target="_blank" rel="noopener noreferrer" download className="text-sm font-semibold text-[var(--muted)] transition hover:text-[var(--foreground)]">Download CV</a>}
         </nav>
         <Link href="/contact" className="hidden rounded-full bg-[var(--dark)] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#35443a] sm:block">
           Contact <span className="ml-1">↗</span>
@@ -49,6 +50,7 @@ export function SiteHeader({ settings }: { settings: SiteSettings }) {
               {link.label}
             </Link>
           ))}
+          {settings.cv_url && <a href={settings.cv_url} target="_blank" rel="noopener noreferrer" download onClick={() => setOpen(false)} className="block border-b border-[var(--line)] py-3 text-sm font-semibold last:border-0">Download CV ↗</a>}
         </nav>
       )}
     </header>
