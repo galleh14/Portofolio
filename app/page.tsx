@@ -13,6 +13,8 @@ import type { Metadata } from "next";
 import { AvailabilityBadge } from "@/components/availability-badge";
 import { getVisibleTestimonials } from "@/lib/testimonials";
 import { TestimonialsSection } from "@/components/testimonials-section";
+import { LazyMap } from "@/components/lazy-map";
+import { getProjectCover } from "@/lib/project-cover";
 
 export const instant = false;
 
@@ -31,14 +33,26 @@ export default async function Home() {
     .from("projects")
     .select("id,title,slug,description,tech_stack,image_url,demo_url,repo_url,doc_url,doc_name,featured,created_at,role,duration,study_area,domain,data_type,methods,software,objective,workflow,result,conclusion,notebook_url,dataset_url,latitude,longitude,project_images(id,image_url,sort_order)")
     .order("featured", { ascending: false })
-    .order("created_at", { ascending: false })
-    .limit(3);
+    .order("created_at", { ascending: false });
 
   if (error) {
     throw new Error(`Gagal memuat project: ${error.message}`);
   }
 
-  const projects = (data as SupabaseProject[]).map(mapSupabaseProject);
+  const allProjects = (data as SupabaseProject[]).map(mapSupabaseProject);
+  const projects = allProjects.slice(0, 3);
+  const mapProjects = allProjects
+    .filter((project): project is typeof project & { latitude: number; longitude: number } => project.latitude != null && project.longitude != null)
+    .map((project) => ({
+      slug: project.slug,
+      title: project.title,
+      domain: project.domain,
+      studyArea: project.studyArea,
+      coverUrl: getProjectCover(project),
+      latitude: project.latitude,
+      longitude: project.longitude,
+    }));
+  const uniqueLocations = new Set(mapProjects.map((project) => `${project.latitude.toFixed(5)},${project.longitude.toFixed(5)}`)).size;
   const sameAs = [settings.linkedin_url, settings.instagram_url, settings.github_url].filter((url): url is string => Boolean(url));
 
   return (
@@ -75,6 +89,14 @@ export default async function Home() {
           <div className="grid gap-10 md:grid-cols-3">{projects.map((project) => <ProjectCard key={project.slug} project={project} featured />)}</div>
           <Link href="/projects" className="mt-10 block text-sm font-bold sm:hidden">View all projects <span className="ml-1">↗</span></Link>
         </div>
+      </section>}
+
+      {mapProjects.length > 0 && <section className="mx-auto max-w-6xl px-5 py-20 sm:px-8 sm:py-28">
+        <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+          <div><p className="eyebrow">Project locations</p><h2 className="display-font mt-3 text-4xl font-bold sm:text-5xl">Peta Lokasi Project</h2></div>
+          <p className="text-sm text-[var(--muted)]">{mapProjects.length} project di {uniqueLocations} lokasi</p>
+        </div>
+        <LazyMap projects={mapProjects} heightClassName="h-[320px] sm:h-[420px]" />
       </section>}
 
       <TestimonialsSection testimonials={testimonials} />
