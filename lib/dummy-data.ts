@@ -24,6 +24,8 @@ export type Project = {
   objective: string | null;
   workflow: string | null;
   conclusion: string | null;
+  imageUrl?: string | null;
+  galleryImages?: string[];
 };
 
 export type SupabaseProject = {
@@ -79,6 +81,8 @@ export function mapSupabaseProject(project: SupabaseProject): Project {
     objective: project.objective,
     workflow: project.workflow,
     conclusion: project.conclusion,
+    imageUrl: project.image_url,
+    galleryImages: [],
   };
 }
 
