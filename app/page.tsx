@@ -8,10 +8,17 @@ import { getSiteSettings } from "@/lib/site-settings";
 import { SocialLinks } from "@/components/social-links";
 import { HeroSlider } from "@/components/hero-slider";
 import { getActiveSlides } from "@/lib/slides";
+import { createPageMetadata } from "@/lib/seo";
+import type { Metadata } from "next";
 import { getVisibleTestimonials } from "@/lib/testimonials";
 import { TestimonialsSection } from "@/components/testimonials-section";
 
 export const instant = false;
+
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getSiteSettings();
+  return createPageMetadata(settings, settings.site_name, `${settings.site_name}, ${settings.role_title} based in ${settings.location}.`);
+}
 
 export default async function Home() {
   const settings = await getSiteSettings();
@@ -31,6 +38,7 @@ export default async function Home() {
   }
 
   const projects = (data as SupabaseProject[]).map(mapSupabaseProject);
+  const sameAs = [settings.linkedin_url, settings.instagram_url, settings.github_url].filter((url): url is string => Boolean(url));
 
   return (
     <>
@@ -73,6 +81,7 @@ export default async function Home() {
         <div><p className="eyebrow">Get in touch</p><h2 className="display-font mt-4 text-5xl font-bold leading-none sm:text-7xl">{settings.role_title}</h2><div className="mt-10 space-y-3 text-sm text-[var(--muted)]"><p><a href={`mailto:${settings.email}`} target="_blank" rel="noopener noreferrer">{settings.email}</a></p><p>{settings.location}</p></div><div className="mt-7"><SocialLinks settings={settings} /></div></div>
         <ContactForm />
       </section>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ "@context": "https://schema.org", "@type": "Person", name: settings.site_name, jobTitle: settings.role_title, url: process.env.NEXT_PUBLIC_SITE_URL, sameAs }) }} />
     </>
   );
 }

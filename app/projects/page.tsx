@@ -2,9 +2,15 @@ import { ProjectFilters } from "@/components/project-filters";
 import { mapSupabaseProject, type SupabaseProject } from "@/lib/dummy-data";
 import { createClient } from "@/lib/supabase/server";
 import { getSiteSettings } from "@/lib/site-settings";
+import { createPageMetadata } from "@/lib/seo";
+import type { Metadata } from "next";
 
-export const metadata = { title: "Projects" };
 export const instant = false;
+
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getSiteSettings();
+  return createPageMetadata(settings, "Projects", `${settings.site_name} — selected projects and case studies.`);
+}
 
 export default async function ProjectsPage() {
   const settings = await getSiteSettings();

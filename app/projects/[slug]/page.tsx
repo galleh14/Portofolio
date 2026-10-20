@@ -3,10 +3,12 @@ import { notFound } from "next/navigation";
 import { ProjectCard } from "@/components/project-card";
 import { mapSupabaseProject, type SupabaseProject } from "@/lib/dummy-data";
 import { createClient } from "@/lib/supabase/server";
+import { getSiteSettings } from "@/lib/site-settings";
 import { ProjectLightbox } from "@/components/project-lightbox";
 import Image from "next/image";
 import { getProjectCover, getProjectPlaceholderClass } from "@/lib/project-cover";
 import type { ProjectImage } from "@/lib/project-types";
+import { createPageMetadata } from "@/lib/seo";
 
 export const instant = false;
 
@@ -30,7 +32,8 @@ async function getProject(slug: string) {
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const project = await getProject(slug);
-  return { title: project.title };
+  const settings = await getSiteSettings();
+  return createPageMetadata(settings, project.title, project.description, getProjectCover(project));
 }
 
 export default async function ProjectDetailPage({ params }: { params: Promise<{ slug: string }> }) {

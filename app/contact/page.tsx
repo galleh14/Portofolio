@@ -1,10 +1,15 @@
 import { ContactForm } from "@/components/contact-form";
 import { getSiteSettings } from "@/lib/site-settings";
 import { SocialLinks } from "@/components/social-links";
-
-export const metadata = { title: "Contact" };
+import { createPageMetadata } from "@/lib/seo";
+import type { Metadata } from "next";
 
 export const instant = false;
+
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getSiteSettings();
+  return createPageMetadata(settings, "Contact", `${settings.role_title} — ${settings.location}.`);
+}
 
 export default async function ContactPage() {
   const settings = await getSiteSettings();
