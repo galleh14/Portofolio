@@ -18,7 +18,7 @@ export default async function Home() {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("projects")
-    .select("title,slug,description,tech_stack,image_url,demo_url,repo_url,doc_url,doc_name,featured,created_at")
+    .select("title,slug,description,tech_stack,image_url,demo_url,repo_url,doc_url,doc_name,featured,created_at,role,duration,study_area,domain,data_type,methods,software,objective,workflow,result,conclusion")
     .order("featured", { ascending: false })
     .order("created_at", { ascending: false })
     .limit(3);

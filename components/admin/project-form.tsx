@@ -2,12 +2,15 @@
 
 import { useActionState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { ChangeEvent, useEffect, useState } from "react";
 import type { Project } from "@/lib/dummy-data";
-import { createProject, updateProject, type ActionState } from "@/app/admin/actions";
+import { createProject, deleteProjectImage, moveProjectImage, updateProject, updateProjectImage, type ActionState } from "@/app/admin/actions";
+import { TagInput } from "@/components/admin/tag-input";
+import { DATA_TYPES, PROJECT_DOMAINS, type ProjectImage } from "@/lib/project-types";
 
 const initialState: ActionState = { error: "" };
-type AdminProject = Project & { id: string; image_url?: string | null };
+type AdminProject = Project & { id: string; image_url?: string | null; gallery?: ProjectImage[] };
 
 export function ProjectForm({ project }: { project?: AdminProject }) {
   const action = project ? updateProject : createProject;
@@ -15,6 +18,8 @@ export function ProjectForm({ project }: { project?: AdminProject }) {
   const [preview, setPreview] = useState<string | null>(project?.image_url ?? null);
   const [fileError, setFileError] = useState("");
   const [documentError, setDocumentError] = useState("");
+  const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
+  const [galleryCaptions, setGalleryCaptions] = useState<string[]>([]);
 
   useEffect(() => {
     return () => {
@@ -53,10 +58,18 @@ export function ProjectForm({ project }: { project?: AdminProject }) {
       setDocumentError("Dokumen harus berformat PDF.");
       return;
     }
+
     if (file.size > 5 * 1024 * 1024) {
       event.target.value = "";
       setDocumentError("Ukuran dokumen maksimal 5MB.");
     }
+
+  }
+
+  function handleGalleryChange(event: ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(event.target.files ?? []);
+    setGalleryFiles(files);
+    setGalleryCaptions(files.map(() => ""));
   }
 
   return (
@@ -71,6 +84,21 @@ export function ProjectForm({ project }: { project?: AdminProject }) {
       </div>
       <label className="block text-sm font-semibold">Description<textarea required name="description" rows={4} defaultValue={project?.description} className="mt-2 block w-full resize-none rounded-lg border border-[var(--line)] bg-transparent px-3 py-3 font-normal outline-none transition focus:border-[var(--dark)]" /></label>
       <label className="block text-sm font-semibold">Tech stack <span className="font-normal text-[var(--muted)]">(pisahkan dengan koma)</span><input name="tech_stack" defaultValue={project?.stack.join(", ")} className="mt-2 block w-full rounded-lg border border-[var(--line)] bg-transparent px-3 py-3 font-normal outline-none transition focus:border-[var(--dark)]" /></label>
+      <section className="space-y-5 border-t border-[var(--line)] pt-6">
+        <h2 className="display-font text-3xl font-bold">Case Study</h2>
+        <div className="grid gap-5 sm:grid-cols-2">
+          <label className="block text-sm font-semibold">Role<input name="role" defaultValue={project?.role ?? ""} className="mt-2 block w-full rounded-lg border border-[var(--line)] bg-transparent px-3 py-3 font-normal outline-none focus:border-[var(--dark)]" /></label>
+          <label className="block text-sm font-semibold">Duration<input name="duration" defaultValue={project?.duration ?? ""} placeholder="Jan 2022 - Mar 2024" className="mt-2 block w-full rounded-lg border border-[var(--line)] bg-transparent px-3 py-3 font-normal outline-none focus:border-[var(--dark)]" /></label>
+          <label className="block text-sm font-semibold">Study area<input name="study_area" defaultValue={project?.studyArea ?? ""} className="mt-2 block w-full rounded-lg border border-[var(--line)] bg-transparent px-3 py-3 font-normal outline-none focus:border-[var(--dark)]" /></label>
+          <label className="block text-sm font-semibold">Domain<select name="domain" defaultValue={project?.domain ?? ""} className="mt-2 block w-full rounded-lg border border-[var(--line)] bg-white px-3 py-3 font-normal outline-none focus:border-[var(--dark)]"><option value="">Pilih domain</option>{PROJECT_DOMAINS.map((domain) => <option key={domain}>{domain}</option>)}</select></label>
+          <label className="block text-sm font-semibold">Data type<select name="data_type" defaultValue={project?.dataType ?? ""} className="mt-2 block w-full rounded-lg border border-[var(--line)] bg-white px-3 py-3 font-normal outline-none focus:border-[var(--dark)]"><option value="">Pilih data type</option>{DATA_TYPES.map((dataType) => <option key={dataType}>{dataType}</option>)}</select></label>
+        </div>
+        <div className="grid gap-5 sm:grid-cols-2"><TagInput name="methods" label="Methods" initialTags={project?.methods ?? []} suggestions={["Seismic", "Gravity", "Magnetic", "Resistivity/IP", "GPR", "EM/MT", "Well Log"]} /><TagInput name="software" label="Software" initialTags={project?.software ?? []} suggestions={["Petrel", "Oasis montaj", "Surfer", "Res2DInv", "OpendTect", "QGIS", "Python", "MATLAB"]} /></div>
+        <label className="block text-sm font-semibold">Objective<textarea name="objective" rows={3} defaultValue={project?.objective ?? ""} className="mt-2 block w-full resize-y rounded-lg border border-[var(--line)] bg-transparent px-3 py-3 font-normal outline-none focus:border-[var(--dark)]" /></label>
+        <label className="block text-sm font-semibold">Workflow<textarea name="workflow" rows={4} defaultValue={project?.workflow ?? ""} className="mt-2 block w-full resize-y rounded-lg border border-[var(--line)] bg-transparent px-3 py-3 font-normal outline-none focus:border-[var(--dark)]" /></label>
+        <label className="block text-sm font-semibold">Result<textarea name="result" rows={4} defaultValue={project?.result ?? ""} className="mt-2 block w-full resize-y rounded-lg border border-[var(--line)] bg-transparent px-3 py-3 font-normal outline-none focus:border-[var(--dark)]" /></label>
+        <label className="block text-sm font-semibold">Conclusion<textarea name="conclusion" rows={3} defaultValue={project?.conclusion ?? ""} className="mt-2 block w-full resize-y rounded-lg border border-[var(--line)] bg-transparent px-3 py-3 font-normal outline-none focus:border-[var(--dark)]" /></label>
+      </section>
       <div className="grid gap-5 sm:grid-cols-2">
         <div className="sm:col-span-2">
           <label className="block text-sm font-semibold">Project image<input required={!project?.image_url} accept="image/jpeg,image/png,image/webp" name="image" type="file" onChange={handleImageChange} className="mt-2 block w-full cursor-pointer rounded-lg border border-[var(--line)] bg-transparent px-3 py-3 text-sm font-normal file:mr-4 file:rounded-full file:border-0 file:bg-[var(--dark)] file:px-4 file:py-2 file:text-xs file:font-semibold file:text-white" /></label>
@@ -78,6 +106,13 @@ export function ProjectForm({ project }: { project?: AdminProject }) {
           {fileError && <p role="alert" className="mt-2 text-sm text-red-700">{fileError}</p>}
           {preview && <div className="mt-4 aspect-[2/1] max-w-md rounded-xl bg-cover bg-center bg-no-repeat" style={{ backgroundImage: `url("${preview}")` }} aria-label="Preview gambar project" />}
         </div>
+        <section className="space-y-4 border-t border-[var(--line)] pt-6">
+          <h2 className="display-font text-3xl font-bold">Gallery</h2>
+          <p className="text-xs text-[var(--muted)]">JPG, PNG, atau WebP. Maksimal 3MB per file.</p>
+          <input name="gallery_images" type="file" multiple accept="image/jpeg,image/png,image/webp" onChange={handleGalleryChange} className="block w-full cursor-pointer rounded-lg border border-[var(--line)] bg-transparent px-3 py-3 text-sm" />
+          {galleryFiles.map((file, index) => <label key={`${file.name}-${index}`} className="block text-sm font-semibold">{file.name}<input name="gallery_caption" value={galleryCaptions[index] ?? ""} onChange={(event) => setGalleryCaptions(galleryCaptions.map((caption, captionIndex) => captionIndex === index ? event.target.value : caption))} placeholder="Penampang resistivitas 2D" className="mt-2 block w-full rounded-lg border border-[var(--line)] bg-transparent px-3 py-2 font-normal" /></label>)}
+          {project?.gallery && project.gallery.length > 0 && <div className="space-y-3">{project.gallery.map((image, index) => <div key={image.id} className="flex flex-col gap-3 rounded-xl border border-[var(--line)] p-3 sm:flex-row sm:items-center"><Image src={image.image_url} alt={image.caption ?? "Gallery image"} width={128} height={80} className="h-20 w-32 rounded-lg object-cover" /><form action={updateProjectImage} className="flex flex-1 gap-2"><input type="hidden" name="id" value={project.id} /><input type="hidden" name="image_id" value={image.id} /><input type="hidden" name="slug" value={project.slug} /><input name="caption" defaultValue={image.caption ?? ""} className="min-w-0 flex-1 rounded-lg border border-[var(--line)] px-3 py-2 text-sm" /><button className="text-sm font-semibold">Simpan</button></form><div className="flex gap-3 text-sm"><form action={moveProjectImage}><input type="hidden" name="id" value={project.id} /><input type="hidden" name="image_id" value={image.id} /><input type="hidden" name="slug" value={project.slug} /><input type="hidden" name="direction" value="up" /><button disabled={index === 0} className="disabled:opacity-30">↑</button></form><form action={moveProjectImage}><input type="hidden" name="id" value={project.id} /><input type="hidden" name="image_id" value={image.id} /><input type="hidden" name="slug" value={project.slug} /><input type="hidden" name="direction" value="down" /><button disabled={index === project.gallery!.length - 1} className="disabled:opacity-30">↓</button></form><form action={deleteProjectImage}><input type="hidden" name="id" value={project.id} /><input type="hidden" name="image_id" value={image.id} /><input type="hidden" name="image_path" value={image.image_path} /><input type="hidden" name="slug" value={project.slug} /><button className="text-red-700">Hapus</button></form></div></div>)}</div>}
+        </section>
         <label className="block text-sm font-semibold">Demo URL<input name="demo_url" defaultValue={project?.demoUrl} className="mt-2 block w-full rounded-lg border border-[var(--line)] bg-transparent px-3 py-3 font-normal outline-none transition focus:border-[var(--dark)]" /></label>
         <label className="block text-sm font-semibold">Repo URL<input name="repo_url" defaultValue={project?.repoUrl} className="mt-2 block w-full rounded-lg border border-[var(--line)] bg-transparent px-3 py-3 font-normal outline-none transition focus:border-[var(--dark)]" /></label>
       </div>

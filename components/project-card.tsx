@@ -14,6 +14,7 @@ export function ProjectCard({ project, featured = false }: { project: Project; f
         <div>
           <h3 className="display-font text-2xl font-bold">{project.title}</h3>
           <p className="mt-1 text-sm text-[var(--muted)]">{project.category}</p>
+          {project.methods.length > 0 && <div className="mt-3 flex flex-wrap gap-1.5">{project.methods.slice(0, 3).map((method) => <span key={method} className="rounded-full border border-[var(--line)] px-2 py-1 text-[10px] text-[var(--muted)]">{method}</span>)}</div>}
         </div>
         <span className="pt-1 text-sm text-[var(--muted)]">{project.year}</span>
       </div>
