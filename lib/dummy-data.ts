@@ -52,6 +52,7 @@ export type SupabaseProject = {
   result: string | null;
   conclusion: string | null;
   created_at: string;
+  project_images?: { image_url: string; sort_order: number }[] | null;
 };
 
 export function mapSupabaseProject(project: SupabaseProject): Project {
@@ -82,7 +83,7 @@ export function mapSupabaseProject(project: SupabaseProject): Project {
     workflow: project.workflow,
     conclusion: project.conclusion,
     imageUrl: project.image_url,
-    galleryImages: [],
+    galleryImages: project.project_images?.sort((a, b) => a.sort_order - b.sort_order).map((image) => image.image_url) ?? [],
   };
 }
 

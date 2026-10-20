@@ -8,7 +8,6 @@ import { getSiteSettings } from "@/lib/site-settings";
 import { SocialLinks } from "@/components/social-links";
 import { HeroSlider } from "@/components/hero-slider";
 import { getActiveSlides } from "@/lib/slides";
-import { getProjectImageMap } from "@/lib/project-images";
 
 export const instant = false;
 
@@ -19,7 +18,7 @@ export default async function Home() {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("projects")
-    .select("id,title,slug,description,tech_stack,image_url,demo_url,repo_url,doc_url,doc_name,featured,created_at,role,duration,study_area,domain,data_type,methods,software,objective,workflow,result,conclusion")
+    .select("id,title,slug,description,tech_stack,image_url,demo_url,repo_url,doc_url,doc_name,featured,created_at,role,duration,study_area,domain,data_type,methods,software,objective,workflow,result,conclusion,project_images(id,image_url,sort_order)")
     .order("featured", { ascending: false })
     .order("created_at", { ascending: false })
     .limit(3);
@@ -28,12 +27,7 @@ export default async function Home() {
     throw new Error(`Gagal memuat project: ${error.message}`);
   }
 
-  const rows = (data ?? []) as (SupabaseProject & { id: string })[];
-  const imageMap = await getProjectImageMap(rows.map((project) => project.id));
-  const projects = rows.map((project) => ({
-    ...mapSupabaseProject(project),
-    galleryImages: imageMap.get(project.id) ?? [],
-  }));
+  const projects = (data as SupabaseProject[]).map(mapSupabaseProject);
 
   return (
     <>
