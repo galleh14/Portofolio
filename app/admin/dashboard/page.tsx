@@ -23,7 +23,7 @@ export default async function AdminDashboardPage() {
     <div className="mx-auto max-w-6xl px-5 py-16 sm:px-8 sm:py-24">
       <div className="flex flex-col justify-between gap-5 border-b border-[var(--line)] pb-8 sm:flex-row sm:items-end">
         <div><p className="eyebrow">Admin workspace</p><h1 className="display-font mt-3 text-5xl font-bold">Projects.</h1></div>
-        <div className="flex items-center gap-5"><Link href="/admin/settings" className="text-sm font-semibold hover:underline">Pengaturan</Link><LogoutButton /><Link href="/admin/dashboard/new" className="rounded-full bg-[var(--dark)] px-5 py-3 text-sm font-semibold text-white">Add project <span className="ml-1">+</span></Link></div>
+        <div className="flex items-center gap-5"><Link href="/admin/resume" className="text-sm font-semibold hover:underline">Resume</Link><Link href="/admin/settings" className="text-sm font-semibold hover:underline">Pengaturan</Link><LogoutButton /><Link href="/admin/dashboard/new" className="rounded-full bg-[var(--dark)] px-5 py-3 text-sm font-semibold text-white">Add project <span className="ml-1">+</span></Link></div>
       </div>
       <div className="mt-8 overflow-hidden rounded-2xl bg-white">
         {projects.length === 0 ? <p className="p-8 text-sm text-[var(--muted)]">Belum ada project. Tambahkan project pertama.</p> : projects.map((project) => (
