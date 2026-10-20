@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { socialLinks } from "@/lib/dummy-data";
+import type { SiteSettings } from "@/lib/site-settings";
+import { SocialLinks } from "@/components/social-links";
 
-export function SiteFooter() {
+export function SiteFooter({ settings }: { settings: SiteSettings }) {
   return (
     <footer className="bg-[var(--dark)] px-5 py-12 text-white sm:px-8 sm:py-16">
       <div className="mx-auto max-w-6xl">
@@ -15,10 +16,8 @@ export function SiteFooter() {
           </Link>
         </div>
         <div className="flex flex-col justify-between gap-6 pt-7 text-sm text-white/55 sm:flex-row">
-          <p>© 2024 Raka Aditya. Built with intention.</p>
-          <div className="flex gap-5">
-            {socialLinks.map((social) => <a key={social.label} href={social.href} className="transition hover:text-white">{social.label}</a>)}
-          </div>
+          <p>{settings.footer_text}</p>
+          <SocialLinks settings={settings} />
         </div>
       </div>
     </footer>
