@@ -9,6 +9,7 @@ import Image from "next/image";
 import { getProjectCover, getProjectPlaceholderClass } from "@/lib/project-cover";
 import type { ProjectImage } from "@/lib/project-types";
 import { createPageMetadata } from "@/lib/seo";
+import { LazyMap } from "@/components/lazy-map";
 
 export const instant = false;
 
@@ -16,7 +17,7 @@ async function getProject(slug: string) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("projects")
-    .select("id,title,slug,description,tech_stack,image_url,demo_url,repo_url,doc_url,doc_name,featured,created_at,role,duration,study_area,domain,data_type,methods,software,objective,workflow,result,conclusion,notebook_url,dataset_url,project_images(id,project_id,image_url,image_path,caption,sort_order)")
+    .select("id,title,slug,description,tech_stack,image_url,demo_url,repo_url,doc_url,doc_name,featured,created_at,role,duration,study_area,domain,data_type,methods,software,objective,workflow,result,conclusion,notebook_url,dataset_url,latitude,longitude,project_images(id,project_id,image_url,image_path,caption,sort_order)")
     .eq("slug", slug)
     .single();
 
@@ -42,7 +43,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
   const supabase = await createClient();
   const { data: nextData } = await supabase
     .from("projects")
-    .select("title,slug,description,tech_stack,image_url,demo_url,repo_url,doc_url,doc_name,featured,created_at,role,duration,study_area,domain,data_type,methods,software,objective,workflow,result,conclusion,notebook_url,dataset_url,project_images(id,image_url,sort_order)")
+    .select("title,slug,description,tech_stack,image_url,demo_url,repo_url,doc_url,doc_name,featured,created_at,role,duration,study_area,domain,data_type,methods,software,objective,workflow,result,conclusion,notebook_url,dataset_url,latitude,longitude,project_images(id,image_url,sort_order)")
     .neq("slug", project.slug)
     .order("created_at", { ascending: false })
     .limit(1)
@@ -57,6 +58,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
         {(project.methods.length > 0 || project.software.length > 0) && <div className="mb-16 flex flex-wrap gap-2">{[...project.methods, ...project.software].map((item) => <span key={item} className="rounded-full border border-[var(--line)] px-3 py-1.5 text-sm">{item}</span>)}</div>}
         {project.objective && <section className="mb-16"><p className="eyebrow">Objective</p><p className="mt-5 max-w-3xl whitespace-pre-line text-2xl leading-relaxed">{project.objective}</p></section>}
         {(project.dataType || project.workflow) && <section className="mb-16"><p className="eyebrow">Data & Workflow</p>{project.dataType && <p className="mt-5 font-semibold">{project.dataType}</p>}{project.workflow && <p className="mt-4 max-w-3xl whitespace-pre-line leading-7 text-[var(--muted)]">{project.workflow}</p>}</section>}
+        {project.latitude != null && project.longitude != null && <section className="mb-16"><p className="eyebrow">Study area</p>{project.studyArea && <p className="mt-4 mb-5 text-sm text-[var(--muted)]">{project.studyArea}</p>}<LazyMap selected={[project.latitude, project.longitude]} /></section>}
         {project.result && <section className="mb-16"><p className="eyebrow">Results</p><p className="mt-5 max-w-3xl whitespace-pre-line leading-7 text-[var(--muted)]">{project.result}</p></section>}
         {project.gallery.length > 0 && <section className="mb-16"><p className="eyebrow">Gallery</p><ProjectLightbox images={project.gallery} /></section>}
         {project.conclusion && <section className="mb-16"><p className="eyebrow">Conclusion</p><p className="mt-5 max-w-3xl whitespace-pre-line text-2xl leading-relaxed">{project.conclusion}</p></section>}

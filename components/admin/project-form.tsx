@@ -8,6 +8,7 @@ import type { Project } from "@/lib/dummy-data";
 import { createProject, deleteProjectImage, moveProjectImage, setProjectCover, updateProject, updateProjectImage, type ActionState } from "@/app/admin/actions";
 import { TagInput } from "@/components/admin/tag-input";
 import { DATA_TYPES, PROJECT_DOMAINS, type ProjectImage } from "@/lib/project-types";
+import { LazyMap } from "@/components/lazy-map";
 
 const initialState: ActionState = { error: "" };
 type AdminProject = Project & { id: string; image_url?: string | null; gallery?: ProjectImage[] };
@@ -20,6 +21,8 @@ export function ProjectForm({ project }: { project?: AdminProject }) {
   const [documentError, setDocumentError] = useState("");
   const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
   const [galleryCaptions, setGalleryCaptions] = useState<string[]>([]);
+  const [latitude, setLatitude] = useState<number | "">(project?.latitude ?? "");
+  const [longitude, setLongitude] = useState<number | "">(project?.longitude ?? "");
 
   useEffect(() => {
     return () => {
@@ -98,6 +101,7 @@ export function ProjectForm({ project }: { project?: AdminProject }) {
         <label className="block text-sm font-semibold">Workflow<textarea name="workflow" rows={4} defaultValue={project?.workflow ?? ""} className="mt-2 block w-full resize-y rounded-lg border border-[var(--line)] bg-transparent px-3 py-3 font-normal outline-none focus:border-[var(--dark)]" /></label>
         <label className="block text-sm font-semibold">Result<textarea name="result" rows={4} defaultValue={project?.result ?? ""} className="mt-2 block w-full resize-y rounded-lg border border-[var(--line)] bg-transparent px-3 py-3 font-normal outline-none focus:border-[var(--dark)]" /></label>
         <label className="block text-sm font-semibold">Conclusion<textarea name="conclusion" rows={3} defaultValue={project?.conclusion ?? ""} className="mt-2 block w-full resize-y rounded-lg border border-[var(--line)] bg-transparent px-3 py-3 font-normal outline-none focus:border-[var(--dark)]" /></label>
+        <div className="space-y-4"><h3 className="text-sm font-semibold">Lokasi studi</h3><div className="grid gap-5 sm:grid-cols-2"><label className="block text-sm font-semibold">Latitude<input name="latitude" type="number" step="any" min="-90" max="90" value={latitude} onChange={(event) => setLatitude(event.target.value === "" ? "" : Number(event.target.value))} className="mt-2 block w-full rounded-lg border border-[var(--line)] bg-transparent px-3 py-3 font-normal outline-none focus:border-[var(--dark)]" /></label><label className="block text-sm font-semibold">Longitude<input name="longitude" type="number" step="any" min="-180" max="180" value={longitude} onChange={(event) => setLongitude(event.target.value === "" ? "" : Number(event.target.value))} className="mt-2 block w-full rounded-lg border border-[var(--line)] bg-transparent px-3 py-3 font-normal outline-none focus:border-[var(--dark)]" /></label></div><p className="text-xs text-[var(--muted)]">Klik peta untuk mengisi koordinat.</p><LazyMap selected={latitude !== "" && longitude !== "" ? [latitude, longitude] : undefined} onSelect={(nextLatitude, nextLongitude) => { setLatitude(Number(nextLatitude.toFixed(6))); setLongitude(Number(nextLongitude.toFixed(6))); }} /></div>
       </section>
       <div className="grid gap-5 sm:grid-cols-2">
         <div className="sm:col-span-2">

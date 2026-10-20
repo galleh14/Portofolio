@@ -31,6 +31,8 @@ type ProjectPayload = {
   conclusion: string | null;
   notebook_url: string | null;
   dataset_url: string | null;
+  latitude: number | null;
+  longitude: number | null;
 };
 type ProjectReadResult = { error: string } | { value: ProjectPayload };
 const MAX_IMAGE_SIZE = 2 * 1024 * 1024;
@@ -86,6 +88,14 @@ function readProject(formData: FormData): ProjectReadResult {
   if ((notebookUrl && !notebookUrl.startsWith("https://")) || (datasetUrl && !datasetUrl.startsWith("https://"))) {
     return { error: "URL Notebook dan Dataset harus diawali https://." };
   }
+  const latitudeText = String(formData.get("latitude") ?? "").trim();
+  const longitudeText = String(formData.get("longitude") ?? "").trim();
+  const latitude = latitudeText ? Number(latitudeText) : null;
+  const longitude = longitudeText ? Number(longitudeText) : null;
+  if ((latitude !== null && (!Number.isFinite(latitude) || latitude < -90 || latitude > 90)) || (longitude !== null && (!Number.isFinite(longitude) || longitude < -180 || longitude > 180))) {
+    return { error: "Latitude harus -90 sampai 90 dan longitude -180 sampai 180." };
+  }
+  if ((latitude === null) !== (longitude === null)) return { error: "Latitude dan longitude harus diisi bersama." };
 
   return {
     value: {
@@ -112,6 +122,8 @@ function readProject(formData: FormData): ProjectReadResult {
       conclusion: String(formData.get("conclusion") ?? "").trim() || null,
       notebook_url: notebookUrl || null,
       dataset_url: datasetUrl || null,
+      latitude,
+      longitude,
     },
   };
 }

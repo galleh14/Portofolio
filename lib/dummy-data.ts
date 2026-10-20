@@ -26,6 +26,8 @@ export type Project = {
   conclusion: string | null;
   notebookUrl?: string | null;
   datasetUrl?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
   imageUrl?: string | null;
   galleryImages?: string[];
 };
@@ -55,6 +57,8 @@ export type SupabaseProject = {
   conclusion: string | null;
   notebook_url: string | null;
   dataset_url: string | null;
+  latitude: number | null;
+  longitude: number | null;
   created_at: string;
   project_images?: { image_url: string; sort_order: number }[] | null;
 };
@@ -88,6 +92,8 @@ export function mapSupabaseProject(project: SupabaseProject): Project {
     conclusion: project.conclusion,
     notebookUrl: project.notebook_url,
     datasetUrl: project.dataset_url,
+    latitude: project.latitude,
+    longitude: project.longitude,
     imageUrl: project.image_url,
     galleryImages: project.project_images?.sort((a, b) => a.sort_order - b.sort_order).map((image) => image.image_url) ?? [],
   };
