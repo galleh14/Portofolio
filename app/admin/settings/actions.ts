@@ -1,6 +1,6 @@
 ﻿"use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
@@ -79,7 +79,7 @@ function readSettings(formData: FormData): SettingsReadResult {
     profile_image_path: null,
   };
 
-  if (Object.entries(settings).some(([key, value]) => !["linkedin_url", "instagram_url", "github_url", "whatsapp", "cv_url", "available_from", "location_preference"].includes(key) && !value)) {
+  if (Object.entries(settings).some(([key, value]) => !["linkedin_url", "instagram_url", "github_url", "whatsapp", "cv_url", "available_from", "location_preference", "profile_image_url", "profile_image_path"].includes(key) && !value)) {
     return { error: "All fields except optional links are required." };
   }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(settings.email)) {
@@ -122,7 +122,8 @@ export async function updateSettings(previousState: SettingsActionState = emptyS
       return { error: cleanupError instanceof Error ? cleanupError.message : "Profile photo cleanup failed.", success: false };
     }
   }
-
+  
+  updateTag("site-settings");
   revalidatePath("/", "layout");
   revalidatePath("/about", "page");
   revalidatePath("/contact", "page");
