@@ -3,7 +3,7 @@ import { getSiteSettings } from "@/lib/site-settings";
 import { getResumeItems } from "@/lib/resume";
 import { createPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
-import Image from "next/image";
+import { ProfilePhoto } from "@/components/profile-photo";
 
 export const instant = false;
 
@@ -21,7 +21,7 @@ export default async function AboutPage() {
       <p className="eyebrow">{settings.about_label}</p>
       <h1 className="display-font mt-5 max-w-4xl whitespace-pre-line text-6xl font-bold leading-[0.9] sm:text-8xl">{settings.about_heading}</h1>
       <div className={`mt-16 grid gap-12 border-t border-[var(--line)] pt-10 ${settings.profile_image_url ? "md:grid-cols-[0.7fr_1.3fr]" : ""}`}>
-        {settings.profile_image_url && <div><p className="eyebrow">{settings.about_label}</p><Image src={settings.profile_image_url} alt={settings.site_name} width={640} height={800} priority className="mt-5 mx-auto aspect-[4/5] w-full max-w-xs rounded-2xl object-cover md:mx-0" /></div>}
+        {settings.profile_image_url && <div><p className="eyebrow">{settings.about_label}</p><div className="mt-5"><ProfilePhoto src={settings.profile_image_url} alt={settings.site_name} priority /></div></div>}
         <p className="max-w-2xl whitespace-pre-line text-lg leading-8 text-[var(--muted)]">{settings.about_body}</p>
       </div>
       <div className="mt-20 border-t border-[var(--line)] pt-10"><p className="eyebrow">{settings.role_title} · {settings.location}</p></div>

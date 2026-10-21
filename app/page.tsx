@@ -15,6 +15,7 @@ import { getVisibleTestimonials } from "@/lib/testimonials";
 import { TestimonialsSection } from "@/components/testimonials-section";
 import { LazyMap } from "@/components/lazy-map";
 import { getProjectCover } from "@/lib/project-cover";
+import { ProfilePhoto } from "@/components/profile-photo";
 
 export const instant = false;
 
@@ -74,8 +75,8 @@ export default async function Home() {
 
       {slides.length > 0 && <HeroSlider slides={slides} />}
 
-      <section id="about" className="mx-auto grid max-w-6xl gap-10 px-5 py-20 sm:px-8 sm:py-28 lg:grid-cols-[0.8fr_1.2fr]">
-        <p className="eyebrow">{settings.about_label}</p>
+      <section id="about" className={`mx-auto grid max-w-6xl gap-10 px-5 py-20 sm:px-8 sm:py-28 ${settings.profile_image_url ? "lg:grid-cols-[0.8fr_1.2fr]" : "lg:grid-cols-[0.8fr_1.2fr]"}`}>
+        {settings.profile_image_url ? <div><p className="eyebrow">{settings.about_label}</p><div className="mt-5"><ProfilePhoto src={settings.profile_image_url} alt={settings.site_name} /></div></div> : <p className="eyebrow">{settings.about_label}</p>}
         <div>
           <h2 className="display-font max-w-3xl whitespace-pre-line text-4xl font-bold leading-tight sm:text-6xl">{settings.about_heading}</h2>
           <p className="mt-8 max-w-2xl whitespace-pre-line text-lg leading-8 text-[var(--muted)]">{settings.about_body}</p>
