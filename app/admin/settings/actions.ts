@@ -21,6 +21,8 @@ type SettingsPayload = {
   github_url: string;
   whatsapp: string;
   cv_url: string;
+  profile_image_url: string | null;
+  profile_image_path: string | null;
   footer_text: string;
   availability_status: "open" | "busy" | "closed";
   available_from: string;
@@ -41,6 +43,12 @@ function readText(formData: FormData, name: string) {
 
 function isValidUrl(value: string) {
   return !value || value.startsWith("https://");
+}
+
+async function removeStorageFile(supabase: Awaited<ReturnType<typeof createClient>>, path: string | null) {
+  if (!path) return;
+  const { error } = await supabase.storage.from("portfolio").remove([path]);
+  if (error) throw new Error(`Failed to delete the old profile photo: ${error.message}`);
 }
 
 function readSettings(formData: FormData): SettingsReadResult {
@@ -67,6 +75,8 @@ function readSettings(formData: FormData): SettingsReadResult {
     availability_status: availabilityStatus as SettingsPayload["availability_status"],
     available_from: readText(formData, "available_from"),
     location_preference: readText(formData, "location_preference"),
+    profile_image_url: null,
+    profile_image_path: null,
   };
 
   if (Object.entries(settings).some(([key, value]) => !["linkedin_url", "instagram_url", "github_url", "whatsapp", "cv_url", "available_from", "location_preference"].includes(key) && !value)) {
@@ -88,15 +98,35 @@ export async function updateSettings(previousState: SettingsActionState = emptyS
 
   const supabase = await requireUser();
   const cvUrl = readText(formData, "uploaded_cv_url") || parsed.value.cv_url || null;
+  const uploadedProfileImageUrl = readText(formData, "uploaded_profile_image_url");
+  const uploadedProfileImagePath = readText(formData, "uploaded_profile_image_path");
+  const removeProfileImage = formData.get("remove_profile_image") === "on";
+  const { data: existingSettings, error: existingSettingsError } = await supabase
+    .from("site_settings")
+    .select("profile_image_url,profile_image_path")
+    .eq("id", 1)
+    .single();
+  if (existingSettingsError) return { error: `Failed to read current settings: ${existingSettingsError.message}`, success: false };
+  const profileImageUrl = uploadedProfileImageUrl || (removeProfileImage ? null : existingSettings.profile_image_url);
+  const profileImagePath = uploadedProfileImagePath || (removeProfileImage ? null : existingSettings.profile_image_path);
 
-  const { error } = await supabase.from("site_settings").update({ ...parsed.value, cv_url: cvUrl }).eq("id", 1);
+  const { error } = await supabase.from("site_settings").update({ ...parsed.value, cv_url: cvUrl, profile_image_url: profileImageUrl, profile_image_path: profileImagePath }).eq("id", 1);
   if (error) {
+    if (uploadedProfileImagePath) await removeStorageFile(supabase, uploadedProfileImagePath);
     return { error: `Settings could not be saved: ${error.message}`, success: false };
+  }
+  if (uploadedProfileImagePath || removeProfileImage) {
+    try {
+      await removeStorageFile(supabase, existingSettings.profile_image_path);
+    } catch (cleanupError) {
+      return { error: cleanupError instanceof Error ? cleanupError.message : "Profile photo cleanup failed.", success: false };
+    }
   }
 
   revalidatePath("/", "layout");
   revalidatePath("/about", "page");
   revalidatePath("/contact", "page");
   revalidatePath("/projects", "page");
+  revalidatePath("/opengraph-image", "page");
   return { error: "", success: true };
 }

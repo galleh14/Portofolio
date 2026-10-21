@@ -3,7 +3,7 @@
 import { useActionState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ChangeEvent, useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useState, useTransition } from "react";
 import type { Project } from "@/lib/dummy-data";
 import { createProject, deleteProjectImage, moveProjectImage, setProjectCover, updateProject, updateProjectImage, type ActionState } from "@/app/admin/actions";
 import { TagInput } from "@/components/admin/tag-input";
@@ -25,6 +25,7 @@ export function ProjectForm({ project }: { project?: AdminProject }) {
   const [latitude, setLatitude] = useState<number | "">(project?.latitude ?? "");
   const [longitude, setLongitude] = useState<number | "">(project?.longitude ?? "");
   const [uploading, setUploading] = useState(false);
+  const [isPending, startTransition] = useTransition();
   const [uploadProgress, setUploadProgress] = useState(0);
   const [originalQuality, setOriginalQuality] = useState(false);
 
@@ -115,7 +116,7 @@ export function ProjectForm({ project }: { project?: AdminProject }) {
       data.delete("document");
       data.delete("gallery_images");
       data.delete("gallery_caption");
-      formAction(data);
+      startTransition(() => formAction(data));
     } catch (error) {
       await removeBrowserFiles(uploadedPaths);
       setFileError(error instanceof Error ? error.message : "Upload failed.");
@@ -183,7 +184,7 @@ export function ProjectForm({ project }: { project?: AdminProject }) {
       <div className="flex flex-col-reverse gap-3 border-t border-[var(--line)] pt-6 sm:flex-row sm:justify-end">
         <Link href="/admin/dashboard" className="rounded-full border border-[var(--line)] px-6 py-3 text-center text-sm font-semibold transition hover:border-[var(--dark)]">Cancel</Link>
         {(uploading || pending) && <p className="text-sm text-[var(--muted)]">Uploading... {uploadProgress}%</p>}
-        <button disabled={pending || uploading} type="submit" className="rounded-full bg-[var(--dark)] px-6 py-3 text-sm font-semibold text-white disabled:opacity-60">{uploading ? "Uploading..." : pending ? "Saving..." : project ? "Save changes" : "Create project"}</button>
+        <button disabled={isPending || pending || uploading} type="submit" className="rounded-full bg-[var(--dark)] px-6 py-3 text-sm font-semibold text-white disabled:opacity-60">{uploading ? "Uploading..." : isPending || pending ? "Saving..." : project ? "Save changes" : "Create project"}</button>
       </div>
     </form>
   );

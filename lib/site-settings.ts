@@ -16,6 +16,8 @@ export type SiteSettings = {
   github_url: string | null;
   whatsapp: string | null;
   cv_url: string | null;
+  profile_image_url: string | null;
+  profile_image_path: string | null;
   footer_text: string;
   availability_status: "open" | "busy" | "closed";
   available_from: string | null;
@@ -26,7 +28,7 @@ export async function getSiteSettings(): Promise<SiteSettings> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("site_settings")
-    .select("id,site_name,role_title,location,hero_heading,hero_subheading,about_label,about_heading,about_body,email,linkedin_url,instagram_url,github_url,whatsapp,cv_url,footer_text,availability_status,available_from,location_preference")
+    .select("id,site_name,role_title,location,hero_heading,hero_subheading,about_label,about_heading,about_body,email,linkedin_url,instagram_url,github_url,whatsapp,cv_url,profile_image_url,profile_image_path,footer_text,availability_status,available_from,location_preference")
     .eq("id", 1)
     .single();
 
