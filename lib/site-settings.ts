@@ -1,4 +1,5 @@
-﻿import { createClient } from "@/lib/supabase/server";
+﻿import { createClient } from "@supabase/supabase-js";
+import { cacheLife, cacheTag } from "next/cache";
 
 export type SiteSettings = {
   id: number;
@@ -25,7 +26,16 @@ export type SiteSettings = {
 };
 
 export async function getSiteSettings(): Promise<SiteSettings> {
-  const supabase = await createClient();
+  "use cache";
+  cacheTag("site-settings");
+  cacheLife("hours");
+
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    { auth: { persistSession: false, autoRefreshToken: false } },
+  );
+
   const { data, error } = await supabase
     .from("site_settings")
     .select("id,site_name,role_title,location,hero_heading,hero_subheading,about_label,about_heading,about_body,email,linkedin_url,instagram_url,github_url,whatsapp,cv_url,profile_image_url,profile_image_path,footer_text,availability_status,available_from,location_preference")
