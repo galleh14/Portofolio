@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useActionState } from "react";
 import { deleteResumeItem, moveResumeItem, saveResumeItem, toggleResumeItem, type ResumeActionState } from "@/app/admin/resume/actions";
 import { RESUME_CATEGORIES, RESUME_CATEGORY_LABELS, formatResumePeriod, type ResumeCategory, type ResumeItem } from "@/lib/resume-types";
+import { removeBrowserFiles, uploadBrowserFile } from "@/lib/client-upload";
 
 const initialState: ResumeActionState = { error: "", success: false };
 
@@ -17,9 +18,18 @@ function ResumeItemForm({ category, item, onCancel }: { category: ResumeCategory
   const isDated = category !== "skill";
   const hasOrganization = category !== "skill";
   const hasUrl = category === "publication" || category === "certification";
+  const [uploading, setUploading] = useState(false);
+  async function submit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault(); setUploading(true); let path = "";
+    try {
+      const data = new FormData(event.currentTarget); const file = data.get("file");
+      if (file instanceof File && file.size > 0) { const result = await uploadBrowserFile(file, "resume", { compressImage: true }); path = result.path; data.set("uploaded_file_url", result.url); data.set("uploaded_file_path", result.path); data.set("uploaded_file_name", result.name); data.delete("file"); }
+      formAction(data);
+    } catch { if (path) await removeBrowserFiles([path]); } finally { setUploading(false); }
+  }
 
   return (
-    <form key={item?.id ?? `new-${category}`} action={formAction} encType="multipart/form-data" className="space-y-5 rounded-2xl border border-[var(--line)] bg-[var(--background)] p-5">
+    <form key={item?.id ?? `new-${category}`} onSubmit={submit} encType="multipart/form-data" className="space-y-5 rounded-2xl border border-[var(--line)] bg-[var(--background)] p-5">
       <input type="hidden" name="id" value={item?.id ?? ""} />
       <input type="hidden" name="category" value={category} />
       <input type="hidden" name="existing_file_url" value={item?.file_url ?? ""} />
@@ -30,11 +40,11 @@ function ResumeItemForm({ category, item, onCancel }: { category: ResumeCategory
       {isDated && <div className="grid gap-5 sm:grid-cols-2"><label className="block text-sm font-semibold">Start date<input type="date" name="start_date" defaultValue={dateValue(item?.start_date ?? null)} className="mt-2 block w-full rounded-lg border border-[var(--line)] bg-white px-3 py-3 font-normal outline-none focus:border-[var(--dark)]" /></label><label className="block text-sm font-semibold">End date<input type="date" name="end_date" defaultValue={dateValue(item?.end_date ?? null)} disabled={isCurrent} className="mt-2 block w-full rounded-lg border border-[var(--line)] bg-white px-3 py-3 font-normal outline-none disabled:opacity-50" /></label><label className="flex items-center gap-2 text-sm font-semibold sm:col-span-2"><input type="checkbox" name="is_current" checked={isCurrent} onChange={(event) => setIsCurrent(event.target.checked)} className="h-4 w-4 accent-[#18211b]" /> Masih berlangsung</label></div>}
       {(category !== "skill") && <label className="block text-sm font-semibold">Description<textarea name="description" rows={4} defaultValue={item?.description ?? ""} className="mt-2 block w-full resize-y rounded-lg border border-[var(--line)] bg-white px-3 py-3 font-normal outline-none focus:border-[var(--dark)]" /></label>}
       {hasUrl && <label className="block text-sm font-semibold">URL<input name="url" type="url" placeholder="https://..." defaultValue={item?.url ?? ""} className="mt-2 block w-full rounded-lg border border-[var(--line)] bg-white px-3 py-3 font-normal outline-none focus:border-[var(--dark)]" /></label>}
-      {category === "certification" && <><label className="block text-sm font-semibold">Credential ID<input name="credential_id" defaultValue={item?.credential_id ?? ""} className="mt-2 block w-full rounded-lg border border-[var(--line)] bg-white px-3 py-3 font-normal outline-none focus:border-[var(--dark)]" /></label><label className="block text-sm font-semibold">File sertifikat<input name="file" type="file" accept="application/pdf,image/jpeg,image/png,image/webp" className="mt-2 block w-full rounded-lg border border-[var(--line)] bg-white px-3 py-3 text-sm font-normal" /><span className="mt-2 block text-xs font-normal text-[var(--muted)]">PDF, JPG, PNG, WebP. Maksimal 5MB.{item?.file_url ? ` File saat ini tersedia.` : ""}</span></label></>}
+      {category === "certification" && <><label className="block text-sm font-semibold">Credential ID<input name="credential_id" defaultValue={item?.credential_id ?? ""} className="mt-2 block w-full rounded-lg border border-[var(--line)] bg-white px-3 py-3 font-normal outline-none focus:border-[var(--dark)]" /></label><label className="block text-sm font-semibold">File sertifikat<input name="file" type="file" accept="application/pdf,image/jpeg,image/png,image/webp" className="mt-2 block w-full rounded-lg border border-[var(--line)] bg-white px-3 py-3 text-sm font-normal" /><span className="mt-2 block text-xs font-normal text-[var(--muted)]">PDF, JPG, PNG, WebP. Maksimal 50MB.</span></label></>}
       <div className="grid gap-5 sm:grid-cols-2"><label className="block text-sm font-semibold">Urutan<input type="number" name="sort_order" defaultValue={item?.sort_order ?? 0} className="mt-2 block w-full rounded-lg border border-[var(--line)] bg-white px-3 py-3 font-normal outline-none focus:border-[var(--dark)]" /></label><label className="flex items-center gap-2 self-end pb-3 text-sm font-semibold"><input type="checkbox" name="is_visible" defaultChecked={item?.is_visible ?? true} className="h-4 w-4 accent-[#18211b]" /> Tampilkan di publik</label></div>
       {state.error && <p role="alert" className="text-sm text-red-700">{state.error}</p>}
       {state.success && <p role="status" className="text-sm text-[#627a34]">Item berhasil disimpan.</p>}
-      <button disabled={pending} type="submit" className="rounded-full bg-[var(--dark)] px-5 py-3 text-sm font-semibold text-white disabled:opacity-60">{pending ? "Menyimpan..." : "Simpan item"}</button>
+      <button disabled={pending || uploading} type="submit" className="rounded-full bg-[var(--dark)] px-5 py-3 text-sm font-semibold text-white disabled:opacity-60">{uploading ? "Mengupload..." : pending ? "Menyimpan..." : "Simpan item"}</button>
     </form>
   );
 }

@@ -35,14 +35,6 @@ type ProjectPayload = {
   longitude: number | null;
 };
 type ProjectReadResult = { error: string } | { value: ProjectPayload };
-const MAX_IMAGE_SIZE = 2 * 1024 * 1024;
-const IMAGE_TYPES = new Map([
-  ["image/jpeg", "jpg"],
-  ["image/png", "png"],
-  ["image/webp", "webp"],
-]);
-const MAX_DOCUMENT_SIZE = 5 * 1024 * 1024;
-const MAX_GALLERY_IMAGE_SIZE = 3 * 1024 * 1024;
 
 async function requireUser() {
   const supabase = await createClient();
@@ -103,11 +95,11 @@ function readProject(formData: FormData): ProjectReadResult {
       slug,
       description,
       tech_stack: techStack,
-      image_url: String(formData.get("existing_image_url") ?? "").trim() || null,
+      image_url: String(formData.get("uploaded_image_url") ?? formData.get("existing_image_url") ?? "").trim() || null,
       demo_url: String(formData.get("demo_url") ?? "").trim() || null,
       repo_url: String(formData.get("repo_url") ?? "").trim() || null,
-      doc_url: String(formData.get("existing_doc_url") ?? "").trim() || null,
-      doc_name: String(formData.get("existing_doc_name") ?? "").trim() || null,
+      doc_url: String(formData.get("uploaded_doc_url") ?? formData.get("existing_doc_url") ?? "").trim() || null,
+      doc_name: String(formData.get("uploaded_doc_name") ?? formData.get("existing_doc_name") ?? "").trim() || null,
       featured: formData.get("featured") === "on",
       role: String(formData.get("role") ?? "").trim() || null,
       duration: String(formData.get("duration") ?? "").trim() || null,
@@ -128,88 +120,6 @@ function readProject(formData: FormData): ProjectReadResult {
   };
 }
 
-type GalleryReadResult = { error: string } | { files: File[]; captions: string[] };
-
-function readGalleryFiles(formData: FormData): GalleryReadResult {
-  const files = formData.getAll("gallery_images").filter((value): value is File => value instanceof File && value.size > 0);
-  for (const file of files) {
-    if (!IMAGE_TYPES.has(file.type)) return { error: `${file.name}: format gambar tidak didukung.` };
-    if (file.size > MAX_GALLERY_IMAGE_SIZE) return { error: `${file.name}: ukuran maksimal 3MB.` };
-  }
-  const captions = formData.getAll("gallery_caption").map((value) => String(value).trim());
-  return { files, captions };
-}
-
-function readDocumentFile(formData: FormData): { file?: File; error?: string } {
-  const value = formData.get("document");
-  if (!(value instanceof File) || value.size === 0) return {};
-  if (value.type !== "application/pdf") return { error: "Dokumen harus berformat PDF." };
-  if (value.size > MAX_DOCUMENT_SIZE) return { error: "Ukuran dokumen maksimal 5MB." };
-  return { file: value };
-}
-
-function readImageFile(formData: FormData): { file?: File; error?: string } {
-  const value = formData.get("image");
-  if (!(value instanceof File) || value.size === 0) return {};
-
-  if (!IMAGE_TYPES.has(value.type)) {
-    return { error: "Gambar harus berformat JPG, PNG, atau WebP." };
-  }
-
-  if (value.size > MAX_IMAGE_SIZE) {
-    return { error: "Ukuran gambar maksimal 2MB." };
-  }
-
-  return { file: value };
-}
-
-async function uploadProjectImage(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  file: File,
-) {
-  const extension = IMAGE_TYPES.get(file.type);
-  if (!extension) throw new Error("Format gambar tidak didukung.");
-
-  const path = `projects/${Date.now()}-${crypto.randomUUID()}.${extension}`;
-  const { error } = await supabase.storage
-    .from("portfolio")
-    .upload(path, await file.arrayBuffer(), {
-      contentType: file.type,
-      cacheControl: "3600",
-      upsert: false,
-    });
-
-  if (error) throw new Error(`Upload gambar gagal: ${error.message}`);
-  const { data } = supabase.storage.from("portfolio").getPublicUrl(path);
-  return { path, url: data.publicUrl };
-}
-
-async function uploadProjectDocument(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  file: File,
-) {
-  const path = `docs/${Date.now()}-${crypto.randomUUID()}.pdf`;
-  const { error } = await supabase.storage
-    .from("portfolio")
-    .upload(path, await file.arrayBuffer(), {
-      contentType: "application/pdf",
-      cacheControl: "3600",
-      upsert: false,
-    });
-
-  if (error) throw new Error(`Upload dokumen gagal: ${error.message}`);
-  const { data } = supabase.storage.from("portfolio").getPublicUrl(path);
-  return { path, url: data.publicUrl, name: file.name };
-}
-
-async function uploadGalleryImage(supabase: Awaited<ReturnType<typeof createClient>>, file: File) {
-  const extension = IMAGE_TYPES.get(file.type);
-  if (!extension) throw new Error("Format gambar galeri tidak didukung.");
-  const path = `gallery/${crypto.randomUUID()}.${extension}`;
-  const { error } = await supabase.storage.from("portfolio").upload(path, await file.arrayBuffer(), { contentType: file.type, cacheControl: "3600", upsert: false });
-  if (error) throw new Error(`Upload galeri gagal: ${error.message}`);
-  return { path, url: supabase.storage.from("portfolio").getPublicUrl(path).data.publicUrl };
-}
 
 function getStoragePath(imageUrl: string | null) {
   if (!imageUrl) return null;
@@ -250,59 +160,30 @@ export async function createProject(previousState: ActionState = emptyState, for
   void previousState;
   const project = readProject(formData);
   if ("error" in project) return project;
-  const image = readImageFile(formData);
-  if (image.error) return { error: image.error };
-  if (!image.file) return { error: "Pilih gambar project terlebih dahulu." };
-  const document = readDocumentFile(formData);
-  if (document.error) return { error: document.error };
-  const gallery = readGalleryFiles(formData);
-  if ("error" in gallery) return { error: gallery.error };
+  const uploadedImageUrl = String(formData.get("uploaded_image_url") ?? "").trim();
+  if (!uploadedImageUrl) return { error: "Pilih gambar project terlebih dahulu." };
 
   const supabase = await requireUser();
-  let uploadedImage: { path: string; url: string } | undefined;
-  let uploadedDocument: { path: string; url: string; name: string } | undefined;
-  if (image.file) {
-    try {
-      uploadedImage = await uploadProjectImage(supabase, image.file);
-    } catch (error) {
-      return { error: error instanceof Error ? error.message : "Upload gambar gagal." };
-    }
-  }
-  if (document.file) {
-    try {
-      uploadedDocument = await uploadProjectDocument(supabase, document.file);
-    } catch (error) {
-      if (uploadedImage) await supabase.storage.from("portfolio").remove([uploadedImage.path]);
-      return { error: error instanceof Error ? error.message : "Upload dokumen gagal." };
-    }
-  }
-
   const { data: createdProject, error } = await supabase
     .from("projects")
     .insert({
       ...project.value,
-      image_url: uploadedImage?.url ?? null,
-      doc_url: uploadedDocument?.url ?? null,
-      doc_name: uploadedDocument?.name ?? null,
+      image_url: uploadedImageUrl,
+      doc_url: String(formData.get("uploaded_doc_url") ?? "").trim() || null,
+      doc_name: String(formData.get("uploaded_doc_name") ?? "").trim() || null,
     }).select("id").single();
   if (error) {
-    if (uploadedImage) {
-      await supabase.storage.from("portfolio").remove([uploadedImage.path]);
-    }
-    if (uploadedDocument) {
-      await supabase.storage.from("portfolio").remove([uploadedDocument.path]);
-    }
+    const paths = [String(formData.get("uploaded_image_path") ?? ""), String(formData.get("uploaded_doc_path") ?? "")].filter(Boolean);
+    if (paths.length) await supabase.storage.from("portfolio").remove(paths);
     return { error: error.message };
   }
-  const uploadedGallery: { path: string; url: string }[] = [];
   try {
-    for (const file of gallery.files) uploadedGallery.push(await uploadGalleryImage(supabase, file));
+    const uploadedGallery = JSON.parse(String(formData.get("uploaded_gallery") ?? "[]")) as { path: string; url: string; caption: string | null }[];
     if (uploadedGallery.length > 0) {
-      const { error: galleryError } = await supabase.from("project_images").insert(uploadedGallery.map((image, index) => ({ project_id: createdProject.id, image_url: image.url, image_path: image.path, caption: gallery.captions[index] || null, sort_order: index })));
+      const { error: galleryError } = await supabase.from("project_images").insert(uploadedGallery.map((image, index) => ({ project_id: createdProject.id, image_url: image.url, image_path: image.path, caption: image.caption, sort_order: index })));
       if (galleryError) throw new Error(`Galeri gagal disimpan: ${galleryError.message}`);
     }
   } catch (galleryError) {
-    for (const image of uploadedGallery) await supabase.storage.from("portfolio").remove([image.path]);
     await supabase.from("projects").delete().eq("id", createdProject.id);
     return { error: galleryError instanceof Error ? galleryError.message : "Galeri gagal disimpan." };
   }
@@ -319,12 +200,7 @@ export async function updateProject(previousState: ActionState = emptyState, for
 
   const project = readProject(formData);
   if ("error" in project) return project;
-  const image = readImageFile(formData);
-  if (image.error) return { error: image.error };
-  const document = readDocumentFile(formData);
-  if (document.error) return { error: document.error };
-  const gallery = readGalleryFiles(formData);
-  if ("error" in gallery) return { error: gallery.error };
+  const uploadedImageUrl = String(formData.get("uploaded_image_url") ?? "").trim();
   const removeDocument = formData.get("remove_document") === "on";
 
   const supabase = await requireUser();
@@ -335,51 +211,28 @@ export async function updateProject(previousState: ActionState = emptyState, for
     .single();
   if (existingProjectError) return { error: `Gagal membaca project: ${existingProjectError.message}` };
 
-  let uploadedImage: { path: string; url: string } | undefined;
-  let uploadedDocument: { path: string; url: string; name: string } | undefined;
-  if (image.file) {
-    try {
-      uploadedImage = await uploadProjectImage(supabase, image.file);
-    } catch (error) {
-      return { error: error instanceof Error ? error.message : "Upload gambar gagal." };
-    }
-  }
-  if (document.file) {
-    try {
-      uploadedDocument = await uploadProjectDocument(supabase, document.file);
-    } catch (error) {
-      if (uploadedImage) await supabase.storage.from("portfolio").remove([uploadedImage.path]);
-      return { error: error instanceof Error ? error.message : "Upload dokumen gagal." };
-    }
-  }
-
   const { error } = await supabase
     .from("projects")
     .update({
       ...project.value,
-      image_url: uploadedImage?.url ?? existingProject.image_url,
-      doc_url: uploadedDocument?.url ?? (removeDocument ? null : existingProject.doc_url),
-      doc_name: uploadedDocument?.name ?? (removeDocument ? null : existingProject.doc_name),
+      image_url: uploadedImageUrl || existingProject.image_url,
+      doc_url: String(formData.get("uploaded_doc_url") ?? "").trim() || (removeDocument ? null : existingProject.doc_url),
+      doc_name: String(formData.get("uploaded_doc_name") ?? "").trim() || (removeDocument ? null : existingProject.doc_name),
     })
     .eq("id", id)
     .select("id")
     .single();
   if (error) {
-    if (uploadedImage) {
-      await supabase.storage.from("portfolio").remove([uploadedImage.path]);
-    }
-    if (uploadedDocument) {
-      await supabase.storage.from("portfolio").remove([uploadedDocument.path]);
-    }
+    const paths = [String(formData.get("uploaded_image_path") ?? ""), String(formData.get("uploaded_doc_path") ?? "")].filter(Boolean);
+    if (paths.length) await supabase.storage.from("portfolio").remove(paths);
     return { error: error.message };
   }
 
-  if (!("error" in gallery) && gallery.files.length > 0) {
+  const uploadedGallery = JSON.parse(String(formData.get("uploaded_gallery") ?? "[]")) as { path: string; url: string; caption: string | null }[];
+  if (uploadedGallery.length > 0) {
     const { data: existingGallery } = await supabase.from("project_images").select("sort_order").eq("project_id", id).order("sort_order", { ascending: false }).limit(1).maybeSingle();
-    const uploadedGallery: { path: string; url: string }[] = [];
     try {
-      for (const file of gallery.files) uploadedGallery.push(await uploadGalleryImage(supabase, file));
-      const { error: galleryError } = await supabase.from("project_images").insert(uploadedGallery.map((image, index) => ({ project_id: id, image_url: image.url, image_path: image.path, caption: gallery.captions[index] || null, sort_order: (existingGallery?.sort_order ?? -1) + index + 1 })));
+      const { error: galleryError } = await supabase.from("project_images").insert(uploadedGallery.map((image, index) => ({ project_id: id, image_url: image.url, image_path: image.path, caption: image.caption, sort_order: (existingGallery?.sort_order ?? -1) + index + 1 })));
       if (galleryError) throw new Error(`Galeri gagal disimpan: ${galleryError.message}`);
     } catch (galleryError) {
       for (const image of uploadedGallery) await supabase.storage.from("portfolio").remove([image.path]);
@@ -387,7 +240,7 @@ export async function updateProject(previousState: ActionState = emptyState, for
     }
   }
 
-  if (uploadedImage) {
+  if (uploadedImageUrl) {
     try {
       await removeProjectImage(supabase, existingProject.image_url);
     } catch (cleanupError) {
@@ -398,7 +251,7 @@ export async function updateProject(previousState: ActionState = emptyState, for
       };
     }
   }
-  if (uploadedDocument || removeDocument) {
+  if (formData.get("uploaded_doc_url") || removeDocument) {
     try {
       await removeProjectDocument(supabase, existingProject.doc_url);
     } catch (cleanupError) {

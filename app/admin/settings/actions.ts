@@ -6,7 +6,6 @@ import { createClient } from "@/lib/supabase/server";
 
 export type SettingsActionState = { error: string; success: boolean };
 const emptyState: SettingsActionState = { error: "", success: false };
-const MAX_CV_SIZE = 5 * 1024 * 1024;
 type SettingsPayload = {
   site_name: string;
   role_title: string;
@@ -87,29 +86,11 @@ export async function updateSettings(previousState: SettingsActionState = emptyS
   const parsed = readSettings(formData);
   if ("error" in parsed) return { error: parsed.error, success: false };
 
-  const cv = formData.get("cv_file");
-  if (cv instanceof File && cv.size > 0) {
-    if (cv.type !== "application/pdf") return { error: "CV harus berupa file PDF.", success: false };
-    if (cv.size > MAX_CV_SIZE) return { error: "Ukuran CV maksimal 5MB.", success: false };
-  }
-
   const supabase = await requireUser();
-  let cvUrl = parsed.value.cv_url || null;
-  let uploadedPath: string | null = null;
-  if (cv instanceof File && cv.size > 0) {
-    uploadedPath = `cv/${crypto.randomUUID()}.pdf`;
-    const { error } = await supabase.storage.from("portfolio").upload(uploadedPath, await cv.arrayBuffer(), {
-      contentType: "application/pdf",
-      cacheControl: "3600",
-      upsert: false,
-    });
-    if (error) return { error: `Upload CV gagal: ${error.message}`, success: false };
-    cvUrl = supabase.storage.from("portfolio").getPublicUrl(uploadedPath).data.publicUrl;
-  }
+  const cvUrl = readText(formData, "uploaded_cv_url") || parsed.value.cv_url || null;
 
   const { error } = await supabase.from("site_settings").update({ ...parsed.value, cv_url: cvUrl }).eq("id", 1);
   if (error) {
-    if (uploadedPath) await supabase.storage.from("portfolio").remove([uploadedPath]);
     return { error: `Pengaturan gagal disimpan: ${error.message}`, success: false };
   }
 

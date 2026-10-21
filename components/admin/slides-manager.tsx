@@ -2,8 +2,10 @@
 
 import Image from "next/image";
 import { useActionState } from "react";
+import { useState } from "react";
 import { deleteSlide, moveSlide, updateSlide, uploadSlides, type SlidesActionState } from "@/app/admin/slides/actions";
 import type { HeroSlide } from "@/lib/slide-types";
+import { removeBrowserFiles, uploadBrowserFile } from "@/lib/client-upload";
 
 const initialState: SlidesActionState = { error: "", success: "" };
 
@@ -36,13 +38,39 @@ function SlideRow({ slide, index, total }: { slide: HeroSlide; index: number; to
 
 export function SlidesManager({ slides }: { slides: HeroSlide[] }) {
   const [state, formAction, pending] = useActionState(uploadSlides, initialState);
+  const [uploading, setUploading] = useState(false);
+  const [preserveQuality, setPreserveQuality] = useState(false);
+  const [error, setError] = useState("");
+  const [progress, setProgress] = useState(0);
+  async function handleUpload(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setUploading(true); setError(""); setProgress(0);
+    const paths: string[] = [];
+    try {
+      const data = new FormData(event.currentTarget);
+      const files = data.getAll("images").filter((value): value is File => value instanceof File && value.size > 0);
+      const uploaded = [];
+      for (const file of files) {
+        const result = await uploadBrowserFile(file, "hero", { compressImage: true, preserveQuality, onProgress: setProgress });
+        paths.push(result.path); uploaded.push(result);
+      }
+      data.delete("images"); data.set("uploaded_images", JSON.stringify(uploaded));
+      formAction(data);
+    } catch (uploadError) {
+      await removeBrowserFiles(paths);
+      setError(uploadError instanceof Error ? uploadError.message : "Upload slide gagal.");
+    } finally { setUploading(false); }
+  }
   return (
     <div className="space-y-8">
-      <form action={formAction} encType="multipart/form-data" className="rounded-2xl bg-white p-6 sm:p-8">
+      <form onSubmit={handleUpload} encType="multipart/form-data" className="rounded-2xl bg-white p-6 sm:p-8">
         <h2 className="display-font text-3xl font-bold">Tambah slides</h2>
-        <p className="mt-2 text-sm text-[var(--muted)]">Pilih satu atau beberapa gambar. JPG, PNG, atau WebP, maksimal 3MB per file.</p>
+        <p className="mt-2 text-sm text-[var(--muted)]">Pilih satu atau beberapa gambar. JPG, PNG, atau WebP, maksimal 50MB per file. Kompresi otomatis sekitar 3MB.</p>
+        <label className="mt-3 flex items-center gap-2 text-sm"><input type="checkbox" checked={preserveQuality} onChange={(event) => setPreserveQuality(event.target.checked)} /> Pakai kualitas asli</label>
         <input required name="images" type="file" multiple accept="image/jpeg,image/png,image/webp" className="mt-5 block w-full cursor-pointer rounded-lg border border-[var(--line)] px-3 py-3 text-sm file:mr-4 file:rounded-full file:border-0 file:bg-[var(--dark)] file:px-4 file:py-2 file:text-xs file:font-semibold file:text-white" />
-        <button disabled={pending} type="submit" className="mt-5 rounded-full bg-[var(--dark)] px-5 py-3 text-sm font-semibold text-white disabled:opacity-60">{pending ? "Mengupload..." : "Upload slides"}</button>
+        {error && <p role="alert" className="mt-4 text-sm text-red-700">{error}</p>}
+        {(uploading || pending) && <p className="mt-4 text-sm text-[var(--muted)]">Mengupload... {progress}%</p>}
+        <button disabled={pending || uploading} type="submit" className="mt-5 rounded-full bg-[var(--dark)] px-5 py-3 text-sm font-semibold text-white disabled:opacity-60">{uploading || pending ? "Mengupload..." : "Upload slides"}</button>
         {state.error && <p role="alert" className="mt-4 text-sm text-red-700">{state.error}</p>}
         {state.success && <p role="status" className="mt-4 text-sm text-[#627a34]">{state.success}</p>}
       </form>
