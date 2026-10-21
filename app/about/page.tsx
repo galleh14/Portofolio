@@ -15,6 +15,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function AboutPage() {
   const settings = await getSiteSettings();
   const resumeItems = await getResumeItems();
+  const software = resumeItems.filter((item) => item.category === "software").slice(0, 6);
   const highlights = resumeItems.filter((item) => item.category === "skill" || item.category === "achievement").slice(0, 3);
   return (
     <div className="mx-auto max-w-6xl px-5 py-20 sm:px-8 sm:py-28">
@@ -26,6 +27,7 @@ export default async function AboutPage() {
       </div>
       <div className="mt-20 border-t border-[var(--line)] pt-10"><p className="eyebrow">{settings.role_title} · {settings.location}</p></div>
       {highlights.length > 0 && <div className="mt-16 border-t border-[var(--line)] pt-10"><p className="eyebrow">Highlights</p><div className="mt-5 grid gap-4 sm:grid-cols-3">{highlights.map((item) => <div key={item.id} className="rounded-2xl bg-white p-5"><p className="font-semibold">{item.title}</p>{item.organization && <p className="mt-1 text-sm text-[var(--muted)]">{item.organization}</p>}</div>)}</div><Link href="/resume" className="mt-7 inline-block rounded-full bg-[var(--dark)] px-6 py-3 text-sm font-semibold text-white">View full resume ↗</Link></div>}
+      {software.length > 0 && <div className="mt-16 border-t border-[var(--line)] pt-10"><p className="eyebrow">Software Proficiency</p><div className="mt-5 flex flex-wrap gap-2">{software.map((item) => <span key={item.id} className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] px-3 py-1.5 text-sm"><span>{item.title}</span><span className="rounded-full bg-[var(--dark)] px-2 py-0.5 text-xs text-white">{item.level}</span></span>)}</div><Link href="/resume" className="mt-7 inline-block rounded-full bg-[var(--dark)] px-6 py-3 text-sm font-semibold text-white">See full resume ↗</Link></div>}
       <Link href="/contact" className="mt-16 inline-block rounded-full bg-[var(--dark)] px-6 py-3 text-sm font-semibold text-white">Let&apos;s work together ↗</Link>
     </div>
   );

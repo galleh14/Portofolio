@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { RESUME_CATEGORIES, type ResumeCategory } from "@/lib/resume-types";
+import { RESUME_CATEGORIES, SOFTWARE_LEVELS, type ResumeCategory, type SoftwareLevel } from "@/lib/resume-types";
 
 export type ResumeActionState = { error: string; success: boolean };
 const emptyState: ResumeActionState = { error: "", success: false };
@@ -16,6 +16,7 @@ type ResumePayload = {
   end_date: string | null;
   is_current: boolean;
   description: string | null;
+  level: SoftwareLevel | null;
   url: string | null;
   credential_id: string | null;
   sort_order: number;
@@ -45,8 +46,10 @@ function readItem(formData: FormData): ResumeReadResult {
   const category = readCategory(readText(formData, "category"));
   const title = readText(formData, "title");
   const url = readText(formData, "url");
+  const level = readText(formData, "level");
   if (!category || !title) return { error: "Category and title are required." };
   if (url && !url.startsWith("https://")) return { error: "URL must start with https://." };
+  if (category === "software" && !SOFTWARE_LEVELS.includes(level as SoftwareLevel)) return { error: "Select a valid software proficiency level." };
   return {
     value: {
       category,
@@ -57,6 +60,7 @@ function readItem(formData: FormData): ResumeReadResult {
       end_date: formData.get("is_current") === "on" ? null : readText(formData, "end_date") || null,
       is_current: formData.get("is_current") === "on",
       description: readText(formData, "description") || null,
+      level: category === "software" ? level as SoftwareLevel : null,
       url: url || null,
       credential_id: readText(formData, "credential_id") || null,
       sort_order: Number.parseInt(readText(formData, "sort_order") || "0", 10) || 0,

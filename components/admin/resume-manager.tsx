@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useActionState } from "react";
 import { deleteResumeItem, moveResumeItem, saveResumeItem, toggleResumeItem, type ResumeActionState } from "@/app/admin/resume/actions";
-import { RESUME_CATEGORIES, RESUME_CATEGORY_LABELS, formatResumePeriod, type ResumeCategory, type ResumeItem } from "@/lib/resume-types";
+import { RESUME_CATEGORIES, RESUME_CATEGORY_LABELS, SOFTWARE_LEVELS, formatResumePeriod, type ResumeCategory, type ResumeItem } from "@/lib/resume-types";
 import { removeBrowserFiles, uploadBrowserFile } from "@/lib/client-upload";
 
 const initialState: ResumeActionState = { error: "", success: false };
@@ -15,7 +15,7 @@ function dateValue(value: string | null) {
 function ResumeItemForm({ category, item, onCancel }: { category: ResumeCategory; item: ResumeItem | null; onCancel: () => void }) {
   const [state, formAction, pending] = useActionState(saveResumeItem, initialState);
   const [isCurrent, setIsCurrent] = useState(item?.is_current ?? false);
-  const isDated = category !== "skill";
+  const isDated = category !== "skill" && category !== "software";
   const hasOrganization = category !== "skill";
   const hasUrl = category === "publication" || category === "certification";
   const [uploading, setUploading] = useState(false);
@@ -37,7 +37,8 @@ function ResumeItemForm({ category, item, onCancel }: { category: ResumeCategory
       <input type="hidden" name="existing_file_path" value={item?.file_path ?? ""} />
       <div className="flex items-center justify-between gap-4"><h3 className="display-font text-2xl font-bold">{item ? "Edit item" : "Add item"}</h3><button type="button" onClick={onCancel} className="text-sm text-[var(--muted)]">Cancel</button></div>
       <label className="block text-sm font-semibold">Title<input required name="title" defaultValue={item?.title ?? ""} className="mt-2 block w-full rounded-lg border border-[var(--line)] bg-white px-3 py-3 font-normal outline-none focus:border-[var(--dark)]" /></label>
-      {hasOrganization && <div className="grid gap-5 sm:grid-cols-2"><label className="block text-sm font-semibold">Organization<input name="organization" defaultValue={item?.organization ?? ""} className="mt-2 block w-full rounded-lg border border-[var(--line)] bg-white px-3 py-3 font-normal outline-none focus:border-[var(--dark)]" /></label><label className="block text-sm font-semibold">Location<input name="location" defaultValue={item?.location ?? ""} className="mt-2 block w-full rounded-lg border border-[var(--line)] bg-white px-3 py-3 font-normal outline-none focus:border-[var(--dark)]" /></label></div>}
+      {hasOrganization && <div className="grid gap-5 sm:grid-cols-2"><label className="block text-sm font-semibold">Organization / group<input name="organization" defaultValue={item?.organization ?? ""} className="mt-2 block w-full rounded-lg border border-[var(--line)] bg-white px-3 py-3 font-normal outline-none focus:border-[var(--dark)]" /></label>{category !== "software" && <label className="block text-sm font-semibold">Location<input name="location" defaultValue={item?.location ?? ""} className="mt-2 block w-full rounded-lg border border-[var(--line)] bg-white px-3 py-3 font-normal outline-none focus:border-[var(--dark)]" /></label>}</div>}
+      {category === "software" && <label className="block text-sm font-semibold">Proficiency level<select required name="level" defaultValue={item?.level ?? ""} className="mt-2 block w-full rounded-lg border border-[var(--line)] bg-white px-3 py-3 font-normal outline-none focus:border-[var(--dark)]"><option value="">Select level</option>{SOFTWARE_LEVELS.map((level) => <option key={level}>{level}</option>)}</select></label>}
       {isDated && <div className="grid gap-5 sm:grid-cols-2"><label className="block text-sm font-semibold">Start date<input type="date" name="start_date" defaultValue={dateValue(item?.start_date ?? null)} className="mt-2 block w-full rounded-lg border border-[var(--line)] bg-white px-3 py-3 font-normal outline-none focus:border-[var(--dark)]" /></label><label className="block text-sm font-semibold">End date<input type="date" name="end_date" defaultValue={dateValue(item?.end_date ?? null)} disabled={isCurrent} className="mt-2 block w-full rounded-lg border border-[var(--line)] bg-white px-3 py-3 font-normal outline-none disabled:opacity-50" /></label><label className="flex items-center gap-2 text-sm font-semibold sm:col-span-2"><input type="checkbox" name="is_current" checked={isCurrent} onChange={(event) => setIsCurrent(event.target.checked)} className="h-4 w-4 accent-[#18211b]" /> Currently ongoing</label></div>}
       {(category !== "skill") && <label className="block text-sm font-semibold">Description<textarea name="description" rows={4} defaultValue={item?.description ?? ""} className="mt-2 block w-full resize-y rounded-lg border border-[var(--line)] bg-white px-3 py-3 font-normal outline-none focus:border-[var(--dark)]" /></label>}
       {hasUrl && <label className="block text-sm font-semibold">URL<input name="url" type="url" placeholder="https://..." defaultValue={item?.url ?? ""} className="mt-2 block w-full rounded-lg border border-[var(--line)] bg-white px-3 py-3 font-normal outline-none focus:border-[var(--dark)]" /></label>}
