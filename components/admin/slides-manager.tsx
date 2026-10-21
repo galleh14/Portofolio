@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useActionState } from "react";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { deleteSlide, moveSlide, updateSlide, uploadSlides, type SlidesActionState } from "@/app/admin/slides/actions";
 import type { HeroSlide } from "@/lib/slide-types";
 import { removeBrowserFiles, uploadBrowserFile } from "@/lib/client-upload";
@@ -39,6 +39,7 @@ function SlideRow({ slide, index, total }: { slide: HeroSlide; index: number; to
 export function SlidesManager({ slides }: { slides: HeroSlide[] }) {
   const [state, formAction, pending] = useActionState(uploadSlides, initialState);
   const [uploading, setUploading] = useState(false);
+  const [isPending, startTransition] = useTransition();
   const [preserveQuality, setPreserveQuality] = useState(false);
   const [error, setError] = useState("");
   const [progress, setProgress] = useState(0);
@@ -55,7 +56,7 @@ export function SlidesManager({ slides }: { slides: HeroSlide[] }) {
         paths.push(result.path); uploaded.push(result);
       }
       data.delete("images"); data.set("uploaded_images", JSON.stringify(uploaded));
-      formAction(data);
+      startTransition(() => formAction(data));
     } catch (uploadError) {
       await removeBrowserFiles(paths);
       setError(uploadError instanceof Error ? uploadError.message : "Slide upload failed.");
@@ -70,7 +71,7 @@ export function SlidesManager({ slides }: { slides: HeroSlide[] }) {
         <input required name="images" type="file" multiple accept="image/jpeg,image/png,image/webp" className="mt-5 block w-full cursor-pointer rounded-lg border border-[var(--line)] px-3 py-3 text-sm file:mr-4 file:rounded-full file:border-0 file:bg-[var(--dark)] file:px-4 file:py-2 file:text-xs file:font-semibold file:text-white" />
         {error && <p role="alert" className="mt-4 text-sm text-red-700">{error}</p>}
         {(uploading || pending) && <p className="mt-4 text-sm text-[var(--muted)]">Uploading... {progress}%</p>}
-        <button disabled={pending || uploading} type="submit" className="mt-5 rounded-full bg-[var(--dark)] px-5 py-3 text-sm font-semibold text-white disabled:opacity-60">{uploading || pending ? "Uploading..." : "Upload slides"}</button>
+        <button disabled={isPending || pending || uploading} type="submit" className="mt-5 rounded-full bg-[var(--dark)] px-5 py-3 text-sm font-semibold text-white disabled:opacity-60">{uploading ? "Uploading..." : isPending || pending ? "Saving..." : "Upload slides"}</button>
         {state.error && <p role="alert" className="mt-4 text-sm text-red-700">{state.error}</p>}
         {state.success && <p role="status" className="mt-4 text-sm text-[#627a34]">{state.success}</p>}
       </form>

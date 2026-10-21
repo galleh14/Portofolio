@@ -1,11 +1,13 @@
 ﻿"use client";
 
 import { useActionState } from "react";
-import { useState } from "react";
 import { submitContact, type ContactActionState } from "@/app/contact/actions";
 
 export function ContactForm() {
-  const [openedAt] = useState(() => Date.now());
+  function setSubmissionTime(event: React.FormEvent<HTMLFormElement>) {
+    const openedAtInput = event.currentTarget.elements.namedItem("opened_at");
+    if (openedAtInput instanceof HTMLInputElement) openedAtInput.value = String(Date.now());
+  }
   const [state, formAction, pending] = useActionState<ContactActionState, FormData>(
     submitContact,
     { error: "", success: false },
@@ -22,8 +24,8 @@ export function ContactForm() {
   }
 
   return (
-    <form action={formAction} className="space-y-6">
-      <input type="hidden" name="opened_at" value={openedAt} />
+    <form action={formAction} onSubmit={setSubmissionTime} className="space-y-6">
+      <input type="hidden" name="opened_at" value="0" />
       <div aria-hidden="true" className="absolute -left-[9999px] h-px w-px overflow-hidden">
         <label>Website<input name="website" tabIndex={-1} autoComplete="off" /></label>
       </div>

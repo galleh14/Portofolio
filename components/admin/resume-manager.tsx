@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useActionState } from "react";
 import { deleteResumeItem, moveResumeItem, saveResumeItem, toggleResumeItem, type ResumeActionState } from "@/app/admin/resume/actions";
 import { RESUME_CATEGORIES, RESUME_CATEGORY_LABELS, formatResumePeriod, type ResumeCategory, type ResumeItem } from "@/lib/resume-types";
@@ -19,12 +19,13 @@ function ResumeItemForm({ category, item, onCancel }: { category: ResumeCategory
   const hasOrganization = category !== "skill";
   const hasUrl = category === "publication" || category === "certification";
   const [uploading, setUploading] = useState(false);
+  const [isPending, startTransition] = useTransition();
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault(); setUploading(true); let path = "";
     try {
       const data = new FormData(event.currentTarget); const file = data.get("file");
       if (file instanceof File && file.size > 0) { const result = await uploadBrowserFile(file, "resume", { compressImage: true }); path = result.path; data.set("uploaded_file_url", result.url); data.set("uploaded_file_path", result.path); data.set("uploaded_file_name", result.name); data.delete("file"); }
-      formAction(data);
+      startTransition(() => formAction(data));
     } catch { if (path) await removeBrowserFiles([path]); } finally { setUploading(false); }
   }
 
@@ -44,7 +45,7 @@ function ResumeItemForm({ category, item, onCancel }: { category: ResumeCategory
       <div className="grid gap-5 sm:grid-cols-2"><label className="block text-sm font-semibold">Order<input type="number" name="sort_order" defaultValue={item?.sort_order ?? 0} className="mt-2 block w-full rounded-lg border border-[var(--line)] bg-white px-3 py-3 font-normal outline-none focus:border-[var(--dark)]" /></label><label className="flex items-center gap-2 self-end pb-3 text-sm font-semibold"><input type="checkbox" name="is_visible" defaultChecked={item?.is_visible ?? true} className="h-4 w-4 accent-[#18211b]" /> Show publicly</label></div>
       {state.error && <p role="alert" className="text-sm text-red-700">{state.error}</p>}
       {state.success && <p role="status" className="text-sm text-[#627a34]">Item saved successfully.</p>}
-      <button disabled={pending || uploading} type="submit" className="rounded-full bg-[var(--dark)] px-5 py-3 text-sm font-semibold text-white disabled:opacity-60">{uploading ? "Uploading..." : pending ? "Saving..." : "Save item"}</button>
+      <button disabled={isPending || pending || uploading} type="submit" className="rounded-full bg-[var(--dark)] px-5 py-3 text-sm font-semibold text-white disabled:opacity-60">{uploading ? "Uploading..." : isPending || pending ? "Saving..." : "Save item"}</button>
     </form>
   );
 }
