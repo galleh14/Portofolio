@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/browser";
@@ -9,7 +9,7 @@ export function LogoutButton() {
   async function handleLogout() {
     const { error } = await createClient().auth.signOut();
     if (error) {
-      throw new Error("Logout gagal. Silakan coba lagi.");
+      throw new Error("Logout failed. Please try again.");
     }
     router.push("/admin/login");
     router.refresh();

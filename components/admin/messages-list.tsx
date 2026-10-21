@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import type { Message } from "@/lib/messages";
 import { MessageItem } from "@/components/admin/message-item";

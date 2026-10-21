@@ -1,4 +1,4 @@
-"use server";
+﻿"use server";
 
 import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
@@ -28,19 +28,19 @@ export async function submitContact(
   if (honeypot) return { error: "", success: true };
 
   if (!Number.isFinite(openedAt) || Date.now() - openedAt < MIN_FORM_AGE_MS) {
-    return { error: "Tunggu beberapa detik sebelum mengirim pesan.", success: false };
+    return { error: "Please wait a few seconds before sending your message.", success: false };
   }
 
   if (name.length < 2 || name.length > 100) {
-    return { error: "Nama harus diisi antara 2 sampai 100 karakter.", success: false };
+    return { error: "Name must be between 2 and 100 characters.", success: false };
   }
 
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return { error: "Masukkan alamat email yang valid.", success: false };
+    return { error: "Please enter a valid email address.", success: false };
   }
 
   if (message.length < 10 || message.length > 2000) {
-    return { error: "Pesan harus diisi antara 10 sampai 2000 karakter.", success: false };
+    return { error: "Message must be between 10 and 2,000 characters.", success: false };
   }
 
   const requestHeaders = await headers();
@@ -49,7 +49,7 @@ export async function submitContact(
   const now = Date.now();
   const recentRequests = (requestsByIp.get(ip) ?? []).filter((time) => now - time < RATE_WINDOW_MS);
   if (recentRequests.length >= RATE_LIMIT) {
-    return { error: "Batas pengiriman tercapai. Silakan coba lagi dalam beberapa menit.", success: false };
+    return { error: "Message limit reached. Please try again in a few minutes.", success: false };
   }
   requestsByIp.set(ip, [...recentRequests, now]);
 
@@ -57,7 +57,7 @@ export async function submitContact(
   const { error } = await supabase.from("messages").insert({ name, email, message });
 
   if (error) {
-    return { error: "Pesan belum terkirim. Silakan coba lagi.", success: false };
+    return { error: "Your message could not be sent. Please try again.", success: false };
   }
 
   return { error: "", success: true };

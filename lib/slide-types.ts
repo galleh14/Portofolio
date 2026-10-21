@@ -1,4 +1,4 @@
-export type HeroSlide = {
+﻿export type HeroSlide = {
   id: string;
   image_url: string;
   image_path: string;

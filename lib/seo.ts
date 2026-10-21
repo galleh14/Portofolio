@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import type { SiteSettings } from "@/lib/site-settings";
 
 export function getSiteUrl() {

@@ -1,4 +1,4 @@
-import { ImageResponse } from "next/og";
+﻿import { ImageResponse } from "next/og";
 import { getSiteSettings } from "@/lib/site-settings";
 
 export const alt = "Portfolio";

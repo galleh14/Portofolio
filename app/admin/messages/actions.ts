@@ -1,4 +1,4 @@
-"use server";
+﻿"use server";
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -13,30 +13,30 @@ async function requireUser() {
 
 export async function markMessageRead(formData: FormData) {
   const id = String(formData.get("id") ?? "");
-  if (!id) throw new Error("Pesan tidak ditemukan.");
+  if (!id) throw new Error("Messages not found.");
   const supabase = await requireUser();
   const { error } = await supabase.from("messages").update({ is_read: true }).eq("id", id);
-  if (error) throw new Error(`Pesan gagal ditandai sudah dibaca: ${error.message}`);
+  if (error) throw new Error(`Messages could not be marked as read: ${error.message}`);
   revalidatePath("/admin/messages", "page");
   revalidatePath("/admin/dashboard", "page");
 }
 
 export async function markMessageUnread(formData: FormData) {
   const id = String(formData.get("id") ?? "");
-  if (!id) throw new Error("Pesan tidak ditemukan.");
+  if (!id) throw new Error("Messages not found.");
   const supabase = await requireUser();
   const { error } = await supabase.from("messages").update({ is_read: false }).eq("id", id);
-  if (error) throw new Error(`Pesan gagal ditandai belum dibaca: ${error.message}`);
+  if (error) throw new Error(`Messages could not be marked as unread: ${error.message}`);
   revalidatePath("/admin/messages", "page");
   revalidatePath("/admin/dashboard", "page");
 }
 
 export async function deleteMessage(formData: FormData) {
   const id = String(formData.get("id") ?? "");
-  if (!id) throw new Error("Pesan tidak ditemukan.");
+  if (!id) throw new Error("Messages not found.");
   const supabase = await requireUser();
   const { error } = await supabase.from("messages").delete().eq("id", id);
-  if (error) throw new Error(`Pesan gagal dihapus: ${error.message}`);
+  if (error) throw new Error(`Messages could not be deleted: ${error.message}`);
   revalidatePath("/admin/messages", "page");
   revalidatePath("/admin/dashboard", "page");
 }

@@ -1,4 +1,4 @@
-import { ContactForm } from "@/components/contact-form";
+﻿import { ContactForm } from "@/components/contact-form";
 import { getSiteSettings } from "@/lib/site-settings";
 import { SocialLinks } from "@/components/social-links";
 import { createPageMetadata } from "@/lib/seo";

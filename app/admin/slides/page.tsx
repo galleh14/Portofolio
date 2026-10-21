@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { SlidesManager } from "@/components/admin/slides-manager";
 import { getAllSlides } from "@/lib/slides";
 

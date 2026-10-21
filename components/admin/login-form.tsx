@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useState } from "react";
@@ -22,7 +22,7 @@ export function LoginForm() {
     const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
 
     if (signInError) {
-      setError("Email atau password tidak valid.");
+      setError("Email or password is invalid.");
       setLoading(false);
       return;
     }

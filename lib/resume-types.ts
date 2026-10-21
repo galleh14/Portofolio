@@ -1,4 +1,4 @@
-export const RESUME_CATEGORIES = [
+﻿export const RESUME_CATEGORIES = [
   "experience",
   "education",
   "certification",
@@ -41,14 +41,14 @@ export type ResumeItem = {
 
 export function formatResumeDate(value: string | null) {
   if (!value) return "";
-  return new Intl.DateTimeFormat("id-ID", { month: "short", year: "numeric" }).format(new Date(`${value}T00:00:00`));
+  return new Intl.DateTimeFormat("en-US", { month: "short", year: "numeric" }).format(new Date(`${value}T00:00:00`));
 }
 
 export function formatResumePeriod(item: ResumeItem) {
   const start = formatResumeDate(item.start_date);
-  const end = item.is_current ? "Sekarang" : formatResumeDate(item.end_date);
+  const end = item.is_current ? "Present" : formatResumeDate(item.end_date);
   if (!start && !end) return "";
-  return `${start || "—"} - ${end || "Sekarang"}`;
+  return `${start || "—"} - ${end || "Present"}`;
 }
 
 export function groupResumeItems(items: ResumeItem[]) {

@@ -1,4 +1,4 @@
-export type Project = {
+﻿export type Project = {
   slug: string;
   title: string;
   category: string;
@@ -105,9 +105,9 @@ export const projects: Project[] = [
     title: "Kora Finance",
     category: "Fintech · Product Design",
     year: "2024",
-    description: "Membuat pengalaman mengatur uang terasa lebih sederhana untuk generasi baru.",
+    description: "Making money management feel simpler for a new generation.",
     longDescription:
-      "Kora adalah konsep aplikasi keuangan personal yang membantu pengguna memahami kebiasaan finansialnya tanpa jargon yang rumit. Saya merancang fondasi visual, alur onboarding, dan sistem insight yang terasa personal.",
+      "Kora is a personal finance app concept that helps users understand their financial habits without complex jargon. I designed the visual foundation, onboarding flow, and a personal-feeling insight system.",
     stack: ["Figma", "Next.js", "TypeScript", "Supabase"],
     accent: "green",
     result: "72%",
@@ -133,9 +133,9 @@ export const projects: Project[] = [
     title: "Ruang Kota",
     category: "Community · Web Experience",
     year: "2023",
-    description: "Platform digital untuk menemukan acara, ruang, dan komunitas di sekitar kota.",
+    description: "A digital platform for discovering events, spaces, and communities around the city.",
     longDescription:
-      "Ruang Kota menghubungkan orang-orang dengan kegiatan lokal yang relevan. Tantangannya adalah menyajikan banyak informasi tanpa membuat pengguna kehilangan konteks. Solusinya adalah sistem discovery yang ringan dan terkurasi.",
+      "Ruang Kota connects people with relevant local activities. The challenge was presenting a lot of information without losing context. The solution was a lightweight, curated discovery system.",
     stack: ["Research", "Figma", "React", "Framer Motion"],
     accent: "blue",
     result: "3.1x",
@@ -161,9 +161,9 @@ export const projects: Project[] = [
     title: "Sora Studio",
     category: "Branding · Portfolio",
     year: "2023",
-    description: "Identitas dan website untuk studio kreatif yang bekerja lintas medium.",
+    description: "Brand identity and website for a creative studio working across mediums.",
     longDescription:
-      "Sora Studio membutuhkan identitas yang cukup tenang untuk menunjukkan kualitas karya, namun tetap punya karakter yang mudah diingat. Saya menerjemahkan karakter tersebut ke dalam sistem brand dan website editorial.",
+      "Sora Studio needed a calm identity that showcased the quality of its work while remaining memorable. I translated that character into a brand system and editorial website.",
     stack: ["Art Direction", "Web Design", "Next.js", "Content"],
     accent: "warm",
     result: "18k",

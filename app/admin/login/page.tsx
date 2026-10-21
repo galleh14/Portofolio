@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+﻿import { Suspense } from "react";
 import { LoginForm } from "@/components/admin/login-form";
 
 export const metadata = { title: "Admin Login" };
@@ -10,7 +10,7 @@ export default function AdminLoginPage() {
         <p className="eyebrow">Private workspace</p>
         <h1 className="display-font mt-3 text-4xl font-bold">Welcome back.</h1>
         <p className="mt-3 text-sm leading-6 text-[var(--muted)]">
-          Masuk untuk mengelola project portfolio.
+          Sign in to manage your portfolio projects.
         </p>
         <div className="mt-8">
           <Suspense fallback={<div className="h-56 animate-pulse rounded-lg bg-[var(--background)]" />}>

@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+﻿import { createClient } from "@/lib/supabase/server";
 import type { HeroSlide } from "@/lib/slide-types";
 
 const SLIDE_SELECT = "id,image_url,image_path,caption,link_url,sort_order,is_active,created_at";
@@ -12,7 +12,7 @@ export async function getActiveSlides() {
     .order("sort_order", { ascending: true })
     .order("created_at", { ascending: true });
 
-  if (error) throw new Error(`Gagal memuat hero slides: ${error.message}`);
+  if (error) throw new Error(`Failed to load hero slides: ${error.message}`);
   return (data ?? []) as HeroSlide[];
 }
 
@@ -24,6 +24,6 @@ export async function getAllSlides() {
     .order("sort_order", { ascending: true })
     .order("created_at", { ascending: true });
 
-  if (error) throw new Error(`Gagal memuat hero slides: ${error.message}`);
+  if (error) throw new Error(`Failed to load hero slides: ${error.message}`);
   return (data ?? []) as HeroSlide[];
 }

@@ -1,4 +1,4 @@
-"use server";
+﻿"use server";
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -31,7 +31,7 @@ function readText(formData: FormData, name: string) {
 async function removePhoto(supabase: Awaited<ReturnType<typeof createClient>>, path: string | null) {
   if (!path) return;
   const { error } = await supabase.storage.from("portfolio").remove([path]);
-  if (error) throw new Error(`Foto Storage gagal dihapus: ${error.message}`);
+  if (error) throw new Error(`Foto Storage could not be deleted: ${error.message}`);
 }
 
 function revalidateTestimonials() {
@@ -42,7 +42,7 @@ function revalidateTestimonials() {
 function readFields(formData: FormData): FieldsResult {
   const quote = readText(formData, "quote");
   const name = readText(formData, "name");
-  if (!quote || !name) return { error: "Quote dan nama wajib diisi." };
+  if (!quote || !name) return { error: "Quote and name are required." };
   const sortOrder = Number.parseInt(readText(formData, "sort_order") || "0", 10);
   return {
     value: {
@@ -68,19 +68,19 @@ export async function createTestimonial(previousState: TestimonialsActionState =
       photo_url: uploaded?.url ?? null,
       photo_path: uploaded?.path ?? null,
     });
-    if (error) throw new Error(`Testimonial gagal disimpan: ${error.message}`);
+    if (error) throw new Error(`Testimonial could not be saved: ${error.message}`);
   } catch (error) {
     if (uploaded) await supabase.storage.from("portfolio").remove([uploaded.path]);
-    return { error: error instanceof Error ? error.message : "Testimonial gagal disimpan.", success: "" };
+    return { error: error instanceof Error ? error.message : "Testimonial could not be saved.", success: "" };
   }
   revalidateTestimonials();
-  return { error: "", success: "Testimonial berhasil ditambahkan." };
+  return { error: "", success: "Testimonial successfully ditambahkan." };
 }
 
 export async function updateTestimonial(previousState: TestimonialsActionState = emptyState, formData: FormData): Promise<TestimonialsActionState> {
   void previousState;
   const id = readText(formData, "id");
-  if (!id) return { error: "Testimonial tidak ditemukan.", success: "" };
+  if (!id) return { error: "Testimonial not found.", success: "" };
   const fields = readFields(formData);
   if ("error" in fields) return { error: fields.error, success: "" };
   const supabase = await requireUser();
@@ -91,22 +91,22 @@ export async function updateTestimonial(previousState: TestimonialsActionState =
       ...fields.value,
       ...(uploaded ? { photo_url: uploaded.url, photo_path: uploaded.path } : {}),
     }).eq("id", id);
-    if (error) throw new Error(`Testimonial gagal diperbarui: ${error.message}`);
+    if (error) throw new Error(`Testimonial could not be updated: ${error.message}`);
     if (uploaded && oldPath) await removePhoto(supabase, oldPath);
   } catch (error) {
     if (uploaded) await supabase.storage.from("portfolio").remove([uploaded.path]);
-    return { error: error instanceof Error ? error.message : "Testimonial gagal diperbarui.", success: "" };
+    return { error: error instanceof Error ? error.message : "Testimonial could not be updated.", success: "" };
   }
   revalidateTestimonials();
-  return { error: "", success: "Testimonial berhasil diperbarui." };
+  return { error: "", success: "Testimonial successfully diperbarui." };
 }
 
 export async function deleteTestimonial(formData: FormData) {
   const id = readText(formData, "id");
-  if (!id) throw new Error("Testimonial tidak ditemukan.");
+  if (!id) throw new Error("Testimonial not found.");
   const supabase = await requireUser();
   const { error } = await supabase.from("testimonials").delete().eq("id", id);
-  if (error) throw new Error(`Testimonial gagal dihapus: ${error.message}`);
+  if (error) throw new Error(`Testimonial could not be deleted: ${error.message}`);
   await removePhoto(supabase, readText(formData, "photo_path") || null);
   revalidateTestimonials();
 }
@@ -114,18 +114,18 @@ export async function deleteTestimonial(formData: FormData) {
 export async function moveTestimonial(formData: FormData) {
   const id = readText(formData, "id");
   const direction = formData.get("direction") === "up" ? "up" : "down";
-  if (!id) throw new Error("Testimonial tidak ditemukan.");
+  if (!id) throw new Error("Testimonial not found.");
   const supabase = await requireUser();
   const { data, error } = await supabase.from("testimonials").select("id,sort_order").order("sort_order", { ascending: true }).order("id", { ascending: true });
-  if (error) throw new Error(`Urutan testimonial gagal dimuat: ${error.message}`);
+  if (error) throw new Error(`Order testimonial could not be loaded: ${error.message}`);
   const index = data.findIndex((item) => item.id === id);
   const otherIndex = direction === "up" ? index - 1 : index + 1;
   if (index < 0 || !data[otherIndex]) return;
   const current = data[index];
   const other = data[otherIndex];
   const first = await supabase.from("testimonials").update({ sort_order: other.sort_order }).eq("id", current.id);
-  if (first.error) throw new Error(`Urutan testimonial gagal diubah: ${first.error.message}`);
+  if (first.error) throw new Error(`Order testimonial could not be changed: ${first.error.message}`);
   const second = await supabase.from("testimonials").update({ sort_order: current.sort_order }).eq("id", other.id);
-  if (second.error) throw new Error(`Urutan testimonial gagal diubah: ${second.error.message}`);
+  if (second.error) throw new Error(`Order testimonial could not be changed: ${second.error.message}`);
   revalidateTestimonials();
 }

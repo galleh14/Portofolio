@@ -1,10 +1,10 @@
-function Skeleton({ className }: { className: string }) {
+﻿function Skeleton({ className }: { className: string }) {
   return <div aria-hidden="true" className={`animate-pulse rounded-lg bg-[var(--line)] ${className}`} />;
 }
 
 export default function ProjectsLoading() {
   return (
-    <div className="mx-auto max-w-6xl px-5 py-20 sm:px-8 sm:py-28" aria-label="Memuat daftar project" role="status">
+    <div className="mx-auto max-w-6xl px-5 py-20 sm:px-8 sm:py-28" aria-label="Loading project list" role="status">
       <Skeleton className="h-3 w-24" />
       <Skeleton className="mt-5 h-24 w-full max-w-3xl sm:h-32" />
       <Skeleton className="mt-4 h-6 w-full max-w-xs" />

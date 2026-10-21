@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import imageCompression from "browser-image-compression";
 import { createClient } from "@/lib/supabase/client";
@@ -14,10 +14,10 @@ export async function uploadBrowserFile(
   folder: string,
   options: { compressImage?: boolean; preserveQuality?: boolean; onProgress?: (progress: number) => void } = {},
 ): Promise<UploadedFile> {
-  if (file.size > MAX_UPLOAD_SIZE) throw new Error(`${file.name}: ukuran maksimal 50MB.`);
+  if (file.size > MAX_UPLOAD_SIZE) throw new Error(`${file.name}: ukuran maximum 50MB.`);
   const isImage = IMAGE_TYPES.includes(file.type as (typeof IMAGE_TYPES)[number]);
   if (!isImage && !DOCUMENT_TYPES.includes(file.type as (typeof DOCUMENT_TYPES)[number])) {
-    throw new Error(`${file.name}: format tidak didukung. Gunakan JPG, PNG, WebP, atau PDF.`);
+    throw new Error(`${file.name}: unsupported format. Use JPG, PNG, WebP, or PDF.`);
   }
 
   let uploadFile = file;
@@ -39,7 +39,7 @@ export async function uploadBrowserFile(
     cacheControl: "3600",
     upsert: false,
   });
-  if (error) throw new Error(`Upload ${file.name} gagal: ${error.message}`);
+  if (error) throw new Error(`Upload of ${file.name} failed: ${error.message}`);
   options.onProgress?.(100);
   return { path, url: supabase.storage.from("portfolio").getPublicUrl(path).data.publicUrl, name: file.name };
 }

@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+﻿import { createClient } from "@/lib/supabase/server";
 
 export type SiteSettings = {
   id: number;
@@ -31,7 +31,7 @@ export async function getSiteSettings(): Promise<SiteSettings> {
     .single();
 
   if (error) {
-    throw new Error(`Gagal memuat pengaturan situs: ${error.message}`);
+    throw new Error(`Failed to load site settings: ${error.message}`);
   }
 
   return data as SiteSettings;

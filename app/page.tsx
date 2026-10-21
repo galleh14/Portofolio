@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { connection } from "next/server";
 import { ContactForm } from "@/components/contact-form";
 import { ProjectCard } from "@/components/project-card";
@@ -36,7 +36,7 @@ export default async function Home() {
     .order("created_at", { ascending: false });
 
   if (error) {
-    throw new Error(`Gagal memuat project: ${error.message}`);
+    throw new Error(`Failed to load projects: ${error.message}`);
   }
 
   const allProjects = (data as SupabaseProject[]).map(mapSupabaseProject);
@@ -93,8 +93,8 @@ export default async function Home() {
 
       {mapProjects.length > 0 && <section className="mx-auto max-w-6xl px-5 py-20 sm:px-8 sm:py-28">
         <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-          <div><p className="eyebrow">Project locations</p><h2 className="display-font mt-3 text-4xl font-bold sm:text-5xl">Peta Lokasi Project</h2></div>
-          <p className="text-sm text-[var(--muted)]">{mapProjects.length} project di {uniqueLocations} lokasi</p>
+          <div><p className="eyebrow">Project locations</p><h2 className="display-font mt-3 text-4xl font-bold sm:text-5xl">Project Location Map</h2></div>
+          <p className="text-sm text-[var(--muted)]">{mapProjects.length} projects across {uniqueLocations} locations</p>
         </div>
         <LazyMap projects={mapProjects} heightClassName="h-[320px] sm:h-[420px]" />
       </section>}

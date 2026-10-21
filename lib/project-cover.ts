@@ -1,4 +1,4 @@
-import type { Project } from "@/lib/dummy-data";
+﻿import type { Project } from "@/lib/dummy-data";
 
 export function getProjectCover(project: Pick<Project, "imageUrl" | "galleryImages">) {
   return project.imageUrl || project.galleryImages?.[0] || null;

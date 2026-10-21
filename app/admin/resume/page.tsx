@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { ResumeManager } from "@/components/admin/resume-manager";
 import { getResumeItems } from "@/lib/resume";
 

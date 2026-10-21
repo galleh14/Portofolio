@@ -1,10 +1,10 @@
-function Skeleton({ className }: { className: string }) {
+﻿function Skeleton({ className }: { className: string }) {
   return <div aria-hidden="true" className={`animate-pulse rounded-lg bg-[var(--line)] ${className}`} />;
 }
 
 export default function ProjectDetailLoading() {
   return (
-    <article aria-label="Memuat detail project" role="status">
+    <article aria-label="Loading project details" role="status">
       <div className="mx-auto max-w-6xl px-5 pt-16 sm:px-8 sm:pt-24">
         <Skeleton className="h-4 w-28" />
         <div className="mt-12 flex flex-col justify-between gap-8 md:flex-row md:items-end"><Skeleton className="h-24 w-full max-w-2xl sm:h-36" /><Skeleton className="h-20 w-full max-w-xs" /></div>
