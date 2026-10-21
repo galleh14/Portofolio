@@ -6,6 +6,7 @@
   "achievement",
   "organization",
   "skill",
+  "software",
 ] as const;
 
 export type ResumeCategory = (typeof RESUME_CATEGORIES)[number];
@@ -18,7 +19,11 @@ export const RESUME_CATEGORY_LABELS: Record<ResumeCategory, string> = {
   achievement: "Achievements",
   organization: "Organizations",
   skill: "Skills",
+  software: "Software Proficiency",
 };
+
+export const SOFTWARE_LEVELS = ["Beginner", "Intermediate", "Advanced"] as const;
+export type SoftwareLevel = (typeof SOFTWARE_LEVELS)[number];
 
 export type ResumeItem = {
   id: string;
@@ -30,6 +35,7 @@ export type ResumeItem = {
   end_date: string | null;
   is_current: boolean;
   description: string | null;
+  level: SoftwareLevel | null;
   url: string | null;
   file_url: string | null;
   file_path: string | null;
@@ -63,5 +69,6 @@ export function groupResumeItems(items: ResumeItem[]) {
     achievement: [],
     organization: [],
     skill: [],
+    software: [],
   });
 }
