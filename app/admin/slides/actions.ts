@@ -6,10 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 
 export type SlidesActionState = { error: string; success: string };
 const emptyState: SlidesActionState = { error: "", success: "" };
-const MAX_FILE_SIZE = 3 * 1024 * 1024;
-const IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 type UrlResult = { error: string } | { value: string | null };
-type ImageFilesResult = { error: string } | { files: File[] };
 
 async function requireUser() {
   const supabase = await createClient();
@@ -24,28 +21,6 @@ function readUrl(value: FormDataEntryValue | null): UrlResult {
   return { value: url || null };
 }
 
-function readImageFiles(formData: FormData): ImageFilesResult {
-  const files = formData.getAll("images").filter((value): value is File => value instanceof File && value.size > 0);
-  if (files.length === 0) return { error: "Pilih minimal satu gambar." };
-  for (const file of files) {
-    if (!IMAGE_TYPES.has(file.type)) return { error: `${file.name}: hanya JPG, PNG, atau WebP yang diperbolehkan.` };
-    if (file.size > MAX_FILE_SIZE) return { error: `${file.name}: ukuran maksimal 3MB.` };
-  }
-  return { files };
-}
-
-async function uploadSlideImage(supabase: Awaited<ReturnType<typeof createClient>>, file: File) {
-  const extension = file.type === "image/jpeg" ? "jpg" : file.type.split("/")[1];
-  const path = `hero/${crypto.randomUUID()}.${extension}`;
-  const { error } = await supabase.storage.from("portfolio").upload(path, await file.arrayBuffer(), {
-    contentType: file.type,
-    cacheControl: "3600",
-    upsert: false,
-  });
-  if (error) throw new Error(`Upload ${file.name} gagal: ${error.message}`);
-  return { path, url: supabase.storage.from("portfolio").getPublicUrl(path).data.publicUrl };
-}
-
 async function removeStorageFile(supabase: Awaited<ReturnType<typeof createClient>>, path: string) {
   const { error } = await supabase.storage.from("portfolio").remove([path]);
   if (error) throw new Error(`File Storage gagal dihapus: ${error.message}`);
@@ -58,13 +33,11 @@ function revalidateSlides() {
 
 export async function uploadSlides(previousState: SlidesActionState = emptyState, formData: FormData): Promise<SlidesActionState> {
   void previousState;
-  const files = readImageFiles(formData);
-  if ("error" in files) return { error: files.error, success: "" };
+  let uploaded: { path: string; url: string; name: string }[] = [];
+  try { uploaded = JSON.parse(String(formData.get("uploaded_images") ?? "[]")); } catch { return { error: "Data upload slide tidak valid.", success: "" }; }
+  if (uploaded.length === 0) return { error: "Pilih minimal satu gambar.", success: "" };
   const supabase = await requireUser();
-  const uploaded: { path: string; url: string }[] = [];
-
   try {
-    for (const file of files.files) uploaded.push(await uploadSlideImage(supabase, file));
     const { data: lastSlide, error: lastSlideError } = await supabase.from("hero_slides").select("sort_order").order("sort_order", { ascending: false }).limit(1).maybeSingle();
     if (lastSlideError) throw new Error(`Urutan slide gagal dibaca: ${lastSlideError.message}`);
     const startOrder = (lastSlide?.sort_order ?? -1) + 1;
@@ -83,7 +56,7 @@ export async function uploadSlides(previousState: SlidesActionState = emptyState
   }
 
   revalidateSlides();
-  return { error: "", success: `${files.files.length} slide berhasil ditambahkan.` };
+  return { error: "", success: `${uploaded.length} slide berhasil ditambahkan.` };
 }
 
 export async function updateSlide(previousState: SlidesActionState = emptyState, formData: FormData): Promise<SlidesActionState> {

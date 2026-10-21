@@ -9,6 +9,7 @@ import { createProject, deleteProjectImage, moveProjectImage, setProjectCover, u
 import { TagInput } from "@/components/admin/tag-input";
 import { DATA_TYPES, PROJECT_DOMAINS, type ProjectImage } from "@/lib/project-types";
 import { LazyMap } from "@/components/lazy-map";
+import { removeBrowserFiles, uploadBrowserFile } from "@/lib/client-upload";
 
 const initialState: ActionState = { error: "" };
 type AdminProject = Project & { id: string; image_url?: string | null; gallery?: ProjectImage[] };
@@ -23,6 +24,9 @@ export function ProjectForm({ project }: { project?: AdminProject }) {
   const [galleryCaptions, setGalleryCaptions] = useState<string[]>([]);
   const [latitude, setLatitude] = useState<number | "">(project?.latitude ?? "");
   const [longitude, setLongitude] = useState<number | "">(project?.longitude ?? "");
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [originalQuality, setOriginalQuality] = useState(false);
 
   useEffect(() => {
     return () => {
@@ -43,9 +47,9 @@ export function ProjectForm({ project }: { project?: AdminProject }) {
       setFileError("Gambar harus berformat JPG, PNG, atau WebP.");
       return;
     }
-    if (file.size > 2 * 1024 * 1024) {
+    if (file.size > 50 * 1024 * 1024) {
       event.target.value = "";
-      setFileError("Ukuran gambar maksimal 2MB.");
+      setFileError("Ukuran gambar maksimal 50MB.");
       return;
     }
 
@@ -62,9 +66,9 @@ export function ProjectForm({ project }: { project?: AdminProject }) {
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
+    if (file.size > 50 * 1024 * 1024) {
       event.target.value = "";
-      setDocumentError("Ukuran dokumen maksimal 5MB.");
+      setDocumentError("Ukuran dokumen maksimal 50MB.");
     }
 
   }
@@ -75,8 +79,53 @@ export function ProjectForm({ project }: { project?: AdminProject }) {
     setGalleryCaptions(files.map(() => ""));
   }
 
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setUploading(true);
+    setUploadProgress(0);
+    const uploadedPaths: string[] = [];
+    try {
+      const form = event.currentTarget;
+      const data = new FormData(form);
+      const image = data.get("image");
+      const document = data.get("document");
+      const gallery = data.getAll("gallery_images").filter((value): value is File => value instanceof File && value.size > 0);
+      if (image instanceof File && image.size > 0) {
+        const result = await uploadBrowserFile(image, "projects", { compressImage: true, preserveQuality: originalQuality, onProgress: setUploadProgress });
+        uploadedPaths.push(result.path);
+        data.set("uploaded_image_url", result.url);
+        data.set("uploaded_image_path", result.path);
+      }
+      if (document instanceof File && document.size > 0) {
+        const result = await uploadBrowserFile(document, "docs", { onProgress: setUploadProgress });
+        uploadedPaths.push(result.path);
+        data.set("uploaded_doc_url", result.url);
+        data.set("uploaded_doc_path", result.path);
+        data.set("uploaded_doc_name", result.name);
+      }
+      const uploadedGallery = [];
+      const captions = data.getAll("gallery_caption").map(String);
+      for (let index = 0; index < gallery.length; index += 1) {
+        const result = await uploadBrowserFile(gallery[index], "gallery", { compressImage: true, preserveQuality: originalQuality, onProgress: setUploadProgress });
+        uploadedPaths.push(result.path);
+        uploadedGallery.push({ ...result, caption: captions[index] || null });
+      }
+      data.set("uploaded_gallery", JSON.stringify(uploadedGallery));
+      data.delete("image");
+      data.delete("document");
+      data.delete("gallery_images");
+      data.delete("gallery_caption");
+      formAction(data);
+    } catch (error) {
+      await removeBrowserFiles(uploadedPaths);
+      setFileError(error instanceof Error ? error.message : "Upload gagal.");
+    } finally {
+      setUploading(false);
+    }
+  }
+
   return (
-    <form action={formAction} encType="multipart/form-data" className="space-y-6 rounded-2xl bg-white p-6 sm:p-8">
+    <form onSubmit={handleSubmit} encType="multipart/form-data" className="space-y-6 rounded-2xl bg-white p-6 sm:p-8">
       {project && <input type="hidden" name="id" value={project.id} />}
       <input type="hidden" name="existing_image_url" value={project?.image_url ?? ""} />
       <input type="hidden" name="existing_doc_url" value={project?.docUrl ?? ""} />
@@ -106,13 +155,14 @@ export function ProjectForm({ project }: { project?: AdminProject }) {
       <div className="grid gap-5 sm:grid-cols-2">
         <div className="sm:col-span-2">
           <label className="block text-sm font-semibold">Project image<input required={!project?.image_url} accept="image/jpeg,image/png,image/webp" name="image" type="file" onChange={handleImageChange} className="mt-2 block w-full cursor-pointer rounded-lg border border-[var(--line)] bg-transparent px-3 py-3 text-sm font-normal file:mr-4 file:rounded-full file:border-0 file:bg-[var(--dark)] file:px-4 file:py-2 file:text-xs file:font-semibold file:text-white" /></label>
-          <p className="mt-2 text-xs text-[var(--muted)]">JPG, PNG, atau WebP. Maksimal 2MB.</p>
+          <p className="mt-2 text-xs text-[var(--muted)]">JPG, PNG, atau WebP. Maksimal 50MB. Kompresi otomatis maksimal 2560px dan sekitar 3MB.</p>
+          <label className="mt-3 flex items-center gap-2 text-sm font-normal"><input type="checkbox" checked={originalQuality} onChange={(event) => setOriginalQuality(event.target.checked)} /> Pakai kualitas asli</label>
           {fileError && <p role="alert" className="mt-2 text-sm text-red-700">{fileError}</p>}
           {preview && <div className="mt-4 aspect-[2/1] max-w-md rounded-xl bg-cover bg-center bg-no-repeat" style={{ backgroundImage: `url("${preview}")` }} aria-label="Preview gambar project" />}
         </div>
         <section className="space-y-4 border-t border-[var(--line)] pt-6">
           <h2 className="display-font text-3xl font-bold">Gallery</h2>
-          <p className="text-xs text-[var(--muted)]">JPG, PNG, atau WebP. Maksimal 3MB per file.</p>
+          <p className="text-xs text-[var(--muted)]">JPG, PNG, atau WebP. Maksimal 50MB per file.</p>
           <input name="gallery_images" type="file" multiple accept="image/jpeg,image/png,image/webp" onChange={handleGalleryChange} className="block w-full cursor-pointer rounded-lg border border-[var(--line)] bg-transparent px-3 py-3 text-sm" />
           {galleryFiles.map((file, index) => <label key={`${file.name}-${index}`} className="block text-sm font-semibold">{file.name}<input name="gallery_caption" value={galleryCaptions[index] ?? ""} onChange={(event) => setGalleryCaptions(galleryCaptions.map((caption, captionIndex) => captionIndex === index ? event.target.value : caption))} placeholder="Penampang resistivitas 2D" className="mt-2 block w-full rounded-lg border border-[var(--line)] bg-transparent px-3 py-2 font-normal" /></label>)}
           {project?.gallery && project.gallery.length > 0 && <div className="space-y-3">{project.gallery.map((image, index) => <div key={image.id} className="flex flex-col gap-3 rounded-xl border border-[var(--line)] p-3 sm:flex-row sm:items-center"><Image src={image.image_url} alt={image.caption ?? "Gallery image"} width={128} height={80} className="h-20 w-32 rounded-lg object-cover" /><form action={updateProjectImage} className="flex flex-1 gap-2"><input type="hidden" name="id" value={project.id} /><input type="hidden" name="image_id" value={image.id} /><input type="hidden" name="slug" value={project.slug} /><input name="caption" defaultValue={image.caption ?? ""} className="min-w-0 flex-1 rounded-lg border border-[var(--line)] px-3 py-2 text-sm" /><button className="text-sm font-semibold">Simpan</button></form><div className="flex flex-wrap gap-3 text-sm"><form action={setProjectCover}><input type="hidden" name="id" value={project.id} /><input type="hidden" name="image_id" value={image.id} /><input type="hidden" name="slug" value={project.slug} /><button className="font-semibold text-[var(--dark)]">{project.image_url === image.image_url ? "Cover aktif" : "Jadikan cover"}</button></form><form action={moveProjectImage}><input type="hidden" name="id" value={project.id} /><input type="hidden" name="image_id" value={image.id} /><input type="hidden" name="slug" value={project.slug} /><input type="hidden" name="direction" value="up" /><button disabled={index === 0} className="disabled:opacity-30">↑</button></form><form action={moveProjectImage}><input type="hidden" name="id" value={project.id} /><input type="hidden" name="image_id" value={image.id} /><input type="hidden" name="slug" value={project.slug} /><input type="hidden" name="direction" value="down" /><button disabled={index === project.gallery!.length - 1} className="disabled:opacity-30">↓</button></form><form action={deleteProjectImage}><input type="hidden" name="id" value={project.id} /><input type="hidden" name="image_id" value={image.id} /><input type="hidden" name="image_path" value={image.image_path} /><input type="hidden" name="slug" value={project.slug} /><button className="text-red-700">Hapus</button></form></div></div>)}</div>}
@@ -124,7 +174,7 @@ export function ProjectForm({ project }: { project?: AdminProject }) {
       </div>
       <div className="space-y-3 border-t border-[var(--line)] pt-6">
         <label className="block text-sm font-semibold">Project document (PDF)<input name="document" type="file" accept="application/pdf" onChange={handleDocumentChange} className="mt-2 block w-full cursor-pointer rounded-lg border border-[var(--line)] bg-transparent px-3 py-3 text-sm font-normal file:mr-4 file:rounded-full file:border-0 file:bg-[var(--dark)] file:px-4 file:py-2 file:text-xs file:font-semibold file:text-white" /></label>
-        <p className="text-xs text-[var(--muted)]">PDF, maksimal 5MB. Upload file baru akan mengganti dokumen lama.</p>
+        <p className="text-xs text-[var(--muted)]">PDF, maksimal 50MB. Upload file baru akan mengganti dokumen lama.</p>
         {documentError && <p role="alert" className="text-sm text-red-700">{documentError}</p>}
         {project?.docUrl && <div className="flex flex-wrap items-center gap-4 rounded-lg border border-[var(--line)] p-3 text-sm"><a href={project.docUrl} target="_blank" rel="noopener noreferrer" className="font-semibold hover:underline">{project.docName ?? "Lihat dokumen lama"} ↗</a><label className="flex items-center gap-2 text-red-700"><input type="checkbox" name="remove_document" className="h-4 w-4" /> Hapus dokumen lama</label></div>}
       </div>
@@ -132,7 +182,8 @@ export function ProjectForm({ project }: { project?: AdminProject }) {
       {state.error && <p role="alert" className="text-sm text-red-700">{state.error}</p>}
       <div className="flex flex-col-reverse gap-3 border-t border-[var(--line)] pt-6 sm:flex-row sm:justify-end">
         <Link href="/admin/dashboard" className="rounded-full border border-[var(--line)] px-6 py-3 text-center text-sm font-semibold transition hover:border-[var(--dark)]">Cancel</Link>
-        <button disabled={pending} type="submit" className="rounded-full bg-[var(--dark)] px-6 py-3 text-sm font-semibold text-white disabled:opacity-60">{pending ? "Saving..." : project ? "Save changes" : "Create project"}</button>
+        {(uploading || pending) && <p className="text-sm text-[var(--muted)]">Mengupload... {uploadProgress}%</p>}
+        <button disabled={pending || uploading} type="submit" className="rounded-full bg-[var(--dark)] px-6 py-3 text-sm font-semibold text-white disabled:opacity-60">{uploading ? "Mengupload..." : pending ? "Saving..." : project ? "Save changes" : "Create project"}</button>
       </div>
     </form>
   );

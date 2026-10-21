@@ -7,8 +7,6 @@ import { RESUME_CATEGORIES, type ResumeCategory } from "@/lib/resume-types";
 
 export type ResumeActionState = { error: string; success: boolean };
 const emptyState: ResumeActionState = { error: "", success: false };
-const MAX_FILE_SIZE = 5 * 1024 * 1024;
-const FILE_TYPES = new Set(["application/pdf", "image/jpeg", "image/png", "image/webp"]);
 type ResumePayload = {
   category: ResumeCategory;
   title: string;
@@ -70,26 +68,6 @@ function readItem(formData: FormData): ResumeReadResult {
   };
 }
 
-function readFile(formData: FormData) {
-  const value = formData.get("file");
-  if (!(value instanceof File) || value.size === 0) return {};
-  if (!FILE_TYPES.has(value.type)) return { error: "File harus PDF, JPG, PNG, atau WebP." };
-  if (value.size > MAX_FILE_SIZE) return { error: "Ukuran file maksimal 5MB." };
-  return { file: value };
-}
-
-async function uploadFile(supabase: Awaited<ReturnType<typeof createClient>>, file: File) {
-  const extension = file.name.split(".").pop()?.toLowerCase() || "bin";
-  const path = `resume/${crypto.randomUUID()}.${extension}`;
-  const { error } = await supabase.storage.from("portfolio").upload(path, await file.arrayBuffer(), {
-    contentType: file.type,
-    cacheControl: "3600",
-    upsert: false,
-  });
-  if (error) throw new Error(`Upload file gagal: ${error.message}`);
-  return { path, url: supabase.storage.from("portfolio").getPublicUrl(path).data.publicUrl, name: file.name };
-}
-
 async function removeFile(supabase: Awaited<ReturnType<typeof createClient>>, path: string | null) {
   if (!path) return;
   const { error } = await supabase.storage.from("portfolio").remove([path]);
@@ -106,19 +84,9 @@ export async function saveResumeItem(previousState: ResumeActionState = emptySta
   void previousState;
   const parsed = readItem(formData);
   if ("error" in parsed) return { error: parsed.error, success: false };
-  const file = readFile(formData);
-  if (file.error) return { error: file.error, success: false };
   const id = readText(formData, "id");
   const supabase = await requireUser();
-  let uploaded: { path: string; url: string; name: string } | undefined;
-
-  if (file.file) {
-    try {
-      uploaded = await uploadFile(supabase, file.file);
-    } catch (error) {
-      return { error: error instanceof Error ? error.message : "Upload file gagal.", success: false };
-    }
-  }
+  const uploaded = formData.get("uploaded_file_url") ? { path: String(formData.get("uploaded_file_path") ?? ""), url: String(formData.get("uploaded_file_url")), name: String(formData.get("uploaded_file_name") ?? "") } : undefined;
 
   const payload = {
     ...parsed.value,

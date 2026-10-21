@@ -6,9 +6,6 @@ import { createClient } from "@/lib/supabase/server";
 
 export type TestimonialsActionState = { error: string; success: string };
 const emptyState: TestimonialsActionState = { error: "", success: "" };
-const MAX_FILE_SIZE = 2 * 1024 * 1024;
-const IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
-type PhotoResult = { error: string } | { file: File | null };
 type FieldsResult = { error: string } | {
   value: {
     quote: string;
@@ -27,28 +24,8 @@ async function requireUser() {
   return supabase;
 }
 
-function readPhoto(formData: FormData): PhotoResult {
-  const value = formData.get("photo");
-  if (!(value instanceof File) || value.size === 0) return { file: null };
-  if (!IMAGE_TYPES.has(value.type)) return { error: "Foto harus berformat JPG, PNG, atau WebP." };
-  if (value.size > MAX_FILE_SIZE) return { error: "Ukuran foto maksimal 2MB." };
-  return { file: value };
-}
-
 function readText(formData: FormData, name: string) {
   return String(formData.get(name) ?? "").trim();
-}
-
-async function uploadPhoto(supabase: Awaited<ReturnType<typeof createClient>>, file: File) {
-  const extension = file.type === "image/jpeg" ? "jpg" : file.type.split("/")[1];
-  const path = `testimonials/${crypto.randomUUID()}.${extension}`;
-  const { error } = await supabase.storage.from("portfolio").upload(path, await file.arrayBuffer(), {
-    contentType: file.type,
-    cacheControl: "3600",
-    upsert: false,
-  });
-  if (error) throw new Error(`Upload foto gagal: ${error.message}`);
-  return { path, url: supabase.storage.from("portfolio").getPublicUrl(path).data.publicUrl };
 }
 
 async function removePhoto(supabase: Awaited<ReturnType<typeof createClient>>, path: string | null) {
@@ -83,12 +60,9 @@ export async function createTestimonial(previousState: TestimonialsActionState =
   void previousState;
   const fields = readFields(formData);
   if ("error" in fields) return { error: fields.error, success: "" };
-  const photo = readPhoto(formData);
-  if ("error" in photo) return { error: photo.error, success: "" };
   const supabase = await requireUser();
-  let uploaded: { path: string; url: string } | undefined;
+  const uploaded = formData.get("uploaded_photo_url") ? { path: String(formData.get("uploaded_photo_path") ?? ""), url: String(formData.get("uploaded_photo_url")) } : undefined;
   try {
-    if (photo.file) uploaded = await uploadPhoto(supabase, photo.file);
     const { error } = await supabase.from("testimonials").insert({
       ...fields.value,
       photo_url: uploaded?.url ?? null,
@@ -109,13 +83,10 @@ export async function updateTestimonial(previousState: TestimonialsActionState =
   if (!id) return { error: "Testimonial tidak ditemukan.", success: "" };
   const fields = readFields(formData);
   if ("error" in fields) return { error: fields.error, success: "" };
-  const photo = readPhoto(formData);
-  if ("error" in photo) return { error: photo.error, success: "" };
   const supabase = await requireUser();
   const oldPath = readText(formData, "existing_photo_path") || null;
-  let uploaded: { path: string; url: string } | undefined;
+  const uploaded = formData.get("uploaded_photo_url") ? { path: String(formData.get("uploaded_photo_path") ?? ""), url: String(formData.get("uploaded_photo_url")) } : undefined;
   try {
-    if (photo.file) uploaded = await uploadPhoto(supabase, photo.file);
     const { error } = await supabase.from("testimonials").update({
       ...fields.value,
       ...(uploaded ? { photo_url: uploaded.url, photo_path: uploaded.path } : {}),
