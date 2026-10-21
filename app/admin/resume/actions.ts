@@ -1,4 +1,4 @@
-"use server";
+﻿"use server";
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -45,8 +45,8 @@ function readItem(formData: FormData): ResumeReadResult {
   const category = readCategory(readText(formData, "category"));
   const title = readText(formData, "title");
   const url = readText(formData, "url");
-  if (!category || !title) return { error: "Kategori dan judul wajib diisi." };
-  if (url && !url.startsWith("https://")) return { error: "URL harus diawali https://." };
+  if (!category || !title) return { error: "Category and title are required." };
+  if (url && !url.startsWith("https://")) return { error: "URL must start with https://." };
   return {
     value: {
       category,
@@ -71,7 +71,7 @@ function readItem(formData: FormData): ResumeReadResult {
 async function removeFile(supabase: Awaited<ReturnType<typeof createClient>>, path: string | null) {
   if (!path) return;
   const { error } = await supabase.storage.from("portfolio").remove([path]);
-  if (error) throw new Error(`Penghapusan file gagal: ${error.message}`);
+  if (error) throw new Error(`File deletion failed: ${error.message}`);
 }
 
 function revalidateResume() {
@@ -102,13 +102,13 @@ export async function saveResumeItem(previousState: ResumeActionState = emptySta
 
   if (result.error) {
     if (uploaded) await removeFile(supabase, uploaded.path);
-    return { error: `Resume gagal disimpan: ${result.error.message}`, success: false };
+    return { error: `Resume could not be saved: ${result.error.message}`, success: false };
   }
   if (uploaded && parsed.value.existing_file_path) {
     try {
       await removeFile(supabase, parsed.value.existing_file_path);
     } catch (error) {
-      return { error: error instanceof Error ? `Tersimpan, tetapi ${error.message.toLowerCase()}` : "Tersimpan, tetapi file lama gagal dihapus.", success: false };
+      return { error: error instanceof Error ? `Saved, but ${error.message.toLowerCase()}` : "Saved, but file lama could not be deleted.", success: false };
     }
   }
   revalidateResume();
@@ -117,12 +117,12 @@ export async function saveResumeItem(previousState: ResumeActionState = emptySta
 
 export async function deleteResumeItem(formData: FormData) {
   const id = readText(formData, "id");
-  if (!id) throw new Error("Item resume tidak ditemukan.");
+  if (!id) throw new Error("Item resume not found.");
   const supabase = await requireUser();
   const { data, error: readError } = await supabase.from("resume_items").select("file_path").eq("id", id).single();
-  if (readError) throw new Error(`Gagal membaca item: ${readError.message}`);
+  if (readError) throw new Error(`Failed to read item: ${readError.message}`);
   const { error } = await supabase.from("resume_items").delete().eq("id", id);
-  if (error) throw new Error(`Item resume gagal dihapus: ${error.message}`);
+  if (error) throw new Error(`Item resume could not be deleted: ${error.message}`);
   await removeFile(supabase, data.file_path);
   revalidateResume();
 }
@@ -132,7 +132,7 @@ export async function toggleResumeItem(formData: FormData) {
   const isVisible = formData.get("is_visible") === "true";
   const supabase = await requireUser();
   const { error } = await supabase.from("resume_items").update({ is_visible: !isVisible }).eq("id", id);
-  if (error) throw new Error(`Visibility gagal diubah: ${error.message}`);
+  if (error) throw new Error(`Visibility could not be changed: ${error.message}`);
   revalidateResume();
 }
 
@@ -140,18 +140,18 @@ export async function moveResumeItem(formData: FormData) {
   const id = readText(formData, "id");
   const direction = formData.get("direction") === "up" ? "up" : "down";
   const category = readCategory(readText(formData, "category"));
-  if (!id || !category) throw new Error("Item resume tidak valid.");
+  if (!id || !category) throw new Error("Item resume is invalid.");
   const supabase = await requireUser();
   const { data, error } = await supabase.from("resume_items").select("id,sort_order").eq("category", category).order("sort_order", { ascending: true }).order("start_date", { ascending: false, nullsFirst: false });
-  if (error) throw new Error(`Urutan resume gagal dimuat: ${error.message}`);
+  if (error) throw new Error(`Order resume could not be loaded: ${error.message}`);
   const index = data.findIndex((item) => item.id === id);
   const otherIndex = direction === "up" ? index - 1 : index + 1;
   if (index < 0 || !data[otherIndex]) return;
   const current = data[index];
   const other = data[otherIndex];
   const first = await supabase.from("resume_items").update({ sort_order: other.sort_order }).eq("id", current.id);
-  if (first.error) throw new Error(`Urutan resume gagal diubah: ${first.error.message}`);
+  if (first.error) throw new Error(`Order resume could not be changed: ${first.error.message}`);
   const second = await supabase.from("resume_items").update({ sort_order: current.sort_order }).eq("id", other.id);
-  if (second.error) throw new Error(`Urutan resume gagal diubah: ${second.error.message}`);
+  if (second.error) throw new Error(`Order resume could not be changed: ${second.error.message}`);
   revalidateResume();
 }

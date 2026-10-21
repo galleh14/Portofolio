@@ -1,4 +1,4 @@
-"use server";
+﻿"use server";
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -46,7 +46,7 @@ function isValidUrl(value: string) {
 function readSettings(formData: FormData): SettingsReadResult {
   const availabilityStatus = readText(formData, "availability_status");
   if (!["open", "busy", "closed"].includes(availabilityStatus)) {
-    return { error: "Status ketersediaan tidak valid." };
+    return { error: "Status ketersediaan is invalid." };
   }
   const settings: SettingsPayload = {
     site_name: readText(formData, "site_name"),
@@ -70,13 +70,13 @@ function readSettings(formData: FormData): SettingsReadResult {
   };
 
   if (Object.entries(settings).some(([key, value]) => !["linkedin_url", "instagram_url", "github_url", "whatsapp", "cv_url", "available_from", "location_preference"].includes(key) && !value)) {
-    return { error: "Semua field selain link opsional wajib diisi." };
+    return { error: "All fields except optional links are required." };
   }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(settings.email)) {
-    return { error: "Format email tidak valid." };
+    return { error: "Format email is invalid." };
   }
   for (const [name, value] of [["LinkedIn", settings.linkedin_url], ["Instagram", settings.instagram_url], ["GitHub", settings.github_url], ["CV", settings.cv_url]] as const) {
-    if (!isValidUrl(value)) return { error: `URL ${name} harus diawali https://.` };
+    if (!isValidUrl(value)) return { error: `URL ${name} must start with https://.` };
   }
   return { value: settings };
 }
@@ -91,7 +91,7 @@ export async function updateSettings(previousState: SettingsActionState = emptyS
 
   const { error } = await supabase.from("site_settings").update({ ...parsed.value, cv_url: cvUrl }).eq("id", 1);
   if (error) {
-    return { error: `Pengaturan gagal disimpan: ${error.message}`, success: false };
+    return { error: `Settings could not be saved: ${error.message}`, success: false };
   }
 
   revalidatePath("/", "layout");

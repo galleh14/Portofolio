@@ -1,10 +1,10 @@
-function Skeleton({ className }: { className: string }) {
+﻿function Skeleton({ className }: { className: string }) {
   return <div aria-hidden="true" className={`animate-pulse rounded-lg bg-[var(--line)] ${className}`} />;
 }
 
 export default function ResumeLoading() {
   return (
-    <div className="mx-auto max-w-6xl px-5 py-20 sm:px-8 sm:py-28" aria-label="Memuat resume" role="status">
+    <div className="mx-auto max-w-6xl px-5 py-20 sm:px-8 sm:py-28" aria-label="Loading resume" role="status">
       <Skeleton className="h-3 w-24" />
       <Skeleton className="mt-5 h-24 w-full max-w-4xl sm:h-32" />
       <div className="mt-20 space-y-20">

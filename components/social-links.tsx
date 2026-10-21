@@ -1,4 +1,4 @@
-import type { SiteSettings } from "@/lib/site-settings";
+﻿import type { SiteSettings } from "@/lib/site-settings";
 
 function ExternalLink({ href, label, download, children }: { href: string; label: string; download?: boolean; children: React.ReactNode }) {
   return (

@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ProjectCard } from "@/components/project-card";
 import { mapSupabaseProject, type SupabaseProject } from "@/lib/dummy-data";
@@ -23,7 +23,7 @@ async function getProject(slug: string) {
 
   if (error) {
     if (error.code === "PGRST116") notFound();
-    throw new Error(`Gagal memuat project: ${error.message}`);
+    throw new Error(`Failed to load projects: ${error.message}`);
   }
 
   const mapped = mapSupabaseProject(data as SupabaseProject);
@@ -62,7 +62,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
         {project.result && <section className="mb-16"><p className="eyebrow">Results</p><p className="mt-5 max-w-3xl whitespace-pre-line leading-7 text-[var(--muted)]">{project.result}</p></section>}
         {project.gallery.length > 0 && <section className="mb-16"><p className="eyebrow">Gallery</p><ProjectLightbox images={project.gallery} /></section>}
         {project.conclusion && <section className="mb-16"><p className="eyebrow">Conclusion</p><p className="mt-5 max-w-3xl whitespace-pre-line text-2xl leading-relaxed">{project.conclusion}</p></section>}
-        <div className="flex flex-wrap gap-4 text-sm font-bold">{project.demoUrl !== "#" && <a href={project.demoUrl} target="_blank" rel="noopener noreferrer">Demo ↗</a>}{project.repoUrl !== "#" && <a href={project.repoUrl} target="_blank" rel="noopener noreferrer">Repo ↗</a>}{project.notebookUrl && <a href={project.notebookUrl} target="_blank" rel="noopener noreferrer">Lihat Notebook ↗</a>}{project.datasetUrl && <a href={project.datasetUrl} target="_blank" rel="noopener noreferrer">Dataset ↗</a>}{project.docUrl && <a href={project.docUrl} target="_blank" rel="noopener noreferrer" className="rounded-full bg-[var(--dark)] px-5 py-3 text-white">Lihat Dokumen{project.docName ? ` · ${project.docName}` : ""} ↗</a>}</div>
+        <div className="flex flex-wrap gap-4 text-sm font-bold">{project.demoUrl !== "#" && <a href={project.demoUrl} target="_blank" rel="noopener noreferrer">Demo ↗</a>}{project.repoUrl !== "#" && <a href={project.repoUrl} target="_blank" rel="noopener noreferrer">Repo ↗</a>}{project.notebookUrl && <a href={project.notebookUrl} target="_blank" rel="noopener noreferrer">View notebook ↗</a>}{project.datasetUrl && <a href={project.datasetUrl} target="_blank" rel="noopener noreferrer">Dataset ↗</a>}{project.docUrl && <a href={project.docUrl} target="_blank" rel="noopener noreferrer" className="rounded-full bg-[var(--dark)] px-5 py-3 text-white">View document{project.docName ? ` · ${project.docName}` : ""} ↗</a>}</div>
       </div>
       {nextProject && <div className="mx-auto max-w-6xl px-5 py-20 sm:px-8 sm:py-28"><p className="eyebrow">Keep exploring</p><div className="mt-8 max-w-md"><ProjectCard project={nextProject} /></div></div>}
     </article>

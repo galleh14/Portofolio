@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import "leaflet/dist/leaflet.css";
 import Image from "next/image";
@@ -78,7 +78,7 @@ function MapContent({ projects = [], selected, onSelect }: Omit<LeafletMapProps,
                   <strong className="block">{project.title}</strong>
                   {project.domain && <p className="text-xs">{project.domain}</p>}
                   {project.studyArea && <p className="text-xs">{project.studyArea}</p>}
-                  <Link href={`/projects/${project.slug}`} className="font-semibold underline">Lihat project</Link>
+                  <Link href={`/projects/${project.slug}`} className="font-semibold underline">View project</Link>
                 </div>
               </Popup>
             </Marker>

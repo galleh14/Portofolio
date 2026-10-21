@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import type { SiteSettings } from "@/lib/site-settings";
 import { SocialLinks } from "@/components/social-links";
 

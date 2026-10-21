@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useActionState } from "react";
 import { useState } from "react";
@@ -16,7 +16,7 @@ export function ContactForm() {
       <div className="rounded-2xl border border-[#b9d88a] bg-[#eff9d7] p-8">
         <p className="eyebrow text-[#627a34]">Message received</p>
         <h3 className="display-font mt-3 text-3xl font-bold">Thanks for reaching out.</h3>
-        <p className="mt-3 text-[var(--muted)]">Pesanmu sudah tersimpan. Saya akan segera menghubungimu kembali.</p>
+        <p className="mt-3 text-[var(--muted)]">Your message has been saved. I&apos;ll get back to you soon.</p>
       </div>
     );
   }

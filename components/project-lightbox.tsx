@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
@@ -118,18 +118,18 @@ export function ProjectLightbox({ images }: { images: ProjectImage[] }) {
     <>
       <div className="mt-6 grid gap-5 sm:grid-cols-2">
         {images.map((image, index) => (
-          <button key={image.id} type="button" onClick={() => open(index)} className="group text-left" aria-label={`Buka gambar ${index + 1} dari ${images.length}`}>
-            <div className="relative aspect-video overflow-hidden rounded-2xl bg-[var(--dark)]"><Image src={image.image_url} alt={image.caption || "Project gallery"} fill sizes="(max-width: 640px) 100vw, 50vw" className="object-cover transition duration-500 group-hover:scale-105" /></div>
+          <button key={image.id} type="button" onClick={() => open(index)} className="group text-left" aria-label={`Open image ${index + 1} of ${images.length}`}>
+            <div className="relative aspect-video overflow-hidden rounded-2xl bg-[var(--dark)]"><Image src={image.image_url} alt={image.caption || "Project gallery image"} fill sizes="(max-width: 640px) 100vw, 50vw" className="object-cover transition duration-500 group-hover:scale-105" /></div>
             {image.caption && <p className="mt-3 text-sm text-[var(--muted)]">{image.caption}</p>}
           </button>
         ))}
       </div>
       {selected && selectedIndex !== null && (
         <div role="dialog" aria-modal="true" aria-label="Project image preview" className="fixed inset-0 z-50 flex flex-col bg-black/95 p-4 text-white sm:p-6" onClick={() => setSelectedIndex(null)}>
-          <div className="flex items-center justify-between"><p className="text-sm text-white/70">{selectedIndex + 1} / {images.length}</p><div className="flex items-center gap-2"><button data-lightbox-focus type="button" onClick={(event) => { event.stopPropagation(); changeZoom(-0.5); }} aria-label="Perkecil gambar" className="rounded-full bg-white/10 px-3 py-2 text-lg hover:bg-white/20">−</button><button data-lightbox-focus type="button" onClick={(event) => { event.stopPropagation(); changeZoom(0.5); }} aria-label="Perbesar gambar" className="rounded-full bg-white/10 px-3 py-2 text-lg hover:bg-white/20">+</button><button data-lightbox-focus ref={closeButtonRef} type="button" onClick={() => setSelectedIndex(null)} aria-label="Tutup preview" className="rounded-full bg-white px-3 py-2 text-xl text-black">×</button></div></div>
+          <div className="flex items-center justify-between"><p className="text-sm text-white/70">{selectedIndex + 1} / {images.length}</p><div className="flex items-center gap-2"><button data-lightbox-focus type="button" onClick={(event) => { event.stopPropagation(); changeZoom(-0.5); }} aria-label="Zoom out" className="rounded-full bg-white/10 px-3 py-2 text-lg hover:bg-white/20">−</button><button data-lightbox-focus type="button" onClick={(event) => { event.stopPropagation(); changeZoom(0.5); }} aria-label="Zoom in" className="rounded-full bg-white/10 px-3 py-2 text-lg hover:bg-white/20">+</button><button data-lightbox-focus ref={closeButtonRef} type="button" onClick={() => setSelectedIndex(null)} aria-label="Close preview" className="rounded-full bg-white px-3 py-2 text-xl text-black">×</button></div></div>
           <div className="relative flex min-h-0 flex-1 items-center justify-center" onClick={(event) => event.stopPropagation()} onWheel={handleWheel} onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp} onPointerCancel={handlePointerUp} onDoubleClick={() => changeZoom(zoom === MIN_ZOOM ? 1 : -1)} style={{ touchAction: "none" }}>
-            <Image src={selected.image_url} alt={selected.caption || "Project gallery"} fill sizes="95vw" priority className="select-none object-contain" draggable={false} style={{ transform: `translate(${offset.x}px, ${offset.y}px) scale(${zoom})`, transition: pointers.current.size ? "none" : "transform 160ms ease" }} />
-            {images.length > 1 && <><button data-lightbox-focus type="button" onClick={() => move(-1)} aria-label="Gambar sebelumnya" className="absolute left-0 rounded-full bg-white/10 px-4 py-3 text-2xl hover:bg-white/20">‹</button><button data-lightbox-focus type="button" onClick={() => move(1)} aria-label="Gambar berikutnya" className="absolute right-0 rounded-full bg-white/10 px-4 py-3 text-2xl hover:bg-white/20">›</button></>}
+            <Image src={selected.image_url} alt={selected.caption || "Project gallery image"} fill sizes="95vw" priority className="select-none object-contain" draggable={false} style={{ transform: `translate(${offset.x}px, ${offset.y}px) scale(${zoom})`, transition: pointers.current.size ? "none" : "transform 160ms ease" }} />
+            {images.length > 1 && <><button data-lightbox-focus type="button" onClick={() => move(-1)} aria-label="Previous image" className="absolute left-0 rounded-full bg-white/10 px-4 py-3 text-2xl hover:bg-white/20">‹</button><button data-lightbox-focus type="button" onClick={() => move(1)} aria-label="Next image" className="absolute right-0 rounded-full bg-white/10 px-4 py-3 text-2xl hover:bg-white/20">›</button></>}
           </div>
           <div className="min-h-10 pt-3 text-center text-sm text-white/80">{selected.caption}</div>
           {images[(selectedIndex + 1) % images.length] && <Image src={images[(selectedIndex + 1) % images.length].image_url} alt="" width={1} height={1} className="hidden" priority />}

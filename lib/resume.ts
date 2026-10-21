@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+﻿import { createClient } from "@/lib/supabase/server";
 import type { ResumeItem } from "@/lib/resume-types";
 export * from "@/lib/resume-types";
 
@@ -9,6 +9,6 @@ export async function getResumeItems(visibleOnly = true) {
   let query = supabase.from("resume_items").select(RESUME_SELECT).order("sort_order", { ascending: true }).order("start_date", { ascending: false, nullsFirst: false });
   if (visibleOnly) query = query.eq("is_visible", true);
   const { data, error } = await query;
-  if (error) throw new Error(`Gagal memuat resume: ${error.message}`);
+  if (error) throw new Error(`Failed to load resume: ${error.message}`);
   return (data ?? []) as ResumeItem[];
 }

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useState } from "react";
@@ -23,7 +23,7 @@ export function SiteHeader({ settings }: { settings: SiteSettings }) {
           {settings.site_name}<span className="text-[#829e52]">.</span>
         </Link>
         <div className="hidden lg:block"><AvailabilityBadge settings={settings} /></div>
-        <nav className="hidden items-center gap-8 md:flex" aria-label="Navigasi utama">
+        <nav className="hidden items-center gap-8 md:flex" aria-label="Main navigation">
           {links.map((link) => (
             <Link key={link.href} href={link.href} className="text-sm text-[var(--muted)] transition hover:text-[var(--foreground)]">
               {link.label}
@@ -36,7 +36,7 @@ export function SiteHeader({ settings }: { settings: SiteSettings }) {
         </Link>
         <button
           type="button"
-          aria-label={open ? "Tutup menu" : "Buka menu"}
+          aria-label={open ? "Close menu" : "Open menu"}
           aria-expanded={open}
           className="rounded-full border border-[var(--line)] p-2.5 md:hidden"
           onClick={() => setOpen(!open)}
@@ -46,7 +46,7 @@ export function SiteHeader({ settings }: { settings: SiteSettings }) {
         </button>
       </div>
       {open && (
-        <nav className="border-t border-[var(--line)] px-5 py-4 md:hidden" aria-label="Navigasi mobile">
+        <nav className="border-t border-[var(--line)] px-5 py-4 md:hidden" aria-label="Mobile navigation">
           {links.map((link) => (
             <Link key={link.href} href={link.href} onClick={() => setOpen(false)} className="block border-b border-[var(--line)] py-3 text-sm last:border-0">
               {link.label}
